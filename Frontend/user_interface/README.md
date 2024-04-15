@@ -1,0 +1,1 @@
+Dashboard made with Slint.dev og Rust
