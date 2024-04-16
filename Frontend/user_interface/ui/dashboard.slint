@@ -1,0 +1,40 @@
+import { GridBox, Button, Slider } from "std-widgets.slint";
+
+component sidebar inherits Rectangle {
+    in-out property <bool> active;
+    callback activate;
+    GridLayout {
+        padding: 0px;
+        @children
+    }
+
+    TouchArea {
+        clicked => {
+            root.activate();
+        }
+    }
+}
+
+export component Recipe inherits Window {
+    GridBox {
+        Row {
+            Button {
+                text: "Snake";
+            }
+
+            Button {
+                text: "Pong";
+            }
+        }
+
+        Row {
+            Button {
+                text: "BrickBreaker";
+            }
+
+            Button {
+                text: "Platformer";
+            }
+        }
+    }
+}
