@@ -1,24 +1,37 @@
 import { GridBox, Button, Slider } from "std-widgets.slint";
+import { palette } from "./common.slint";
 
-component sidebar inherits Rectangle {
-    in-out property <bool> active;
-    callback activate;
-    GridLayout {
-        padding: 0px;
-        @children
-    }
-
-    TouchArea {
-        clicked => {
-            root.activate();
+export component AppWindow inherits Window {
+    background: @linear-gradient(45deg, palette.background 20%, palette.main 100%);
+    width: 1600px;
+    height: 900px;
+    in-out property <bool> sidebaractive: true;
+    in-out property <int> activepage;
+    in-out property <int> sbwidth;
+    // should only be shown if sidebaractive is true
+        sidebar := Rectangle {
+        height: 100%;
+        animate width { duration: 150ms; }
+        width: sidebaractive ? 20% : 0%;
+        background: #ffffff3e;
+        padding: 0;
+        x: 0px;
+        sidebarbutton := Button {
+            icon: @image-url("ui/assets/arrow-right.svg");
+            text: ">";
+            clicked => {
+                sidebaractive = ! sidebaractive;
+            }
         }
     }
-}
 
-export component Recipe inherits Window {
     GridBox {
+        padding-left: sidebar.width + 20px;
+        padding: 20px;
+        opacity: 20;
         Row {
             Button {
+                padding: 100px;
                 text: "Snake";
             }
 
