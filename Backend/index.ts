@@ -4,6 +4,7 @@ import express from "express";
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const https = require("https");
 
 // Getting the jwtSecret from our .env file
 const jwtSecret = process.env.jwtSecret;
@@ -12,6 +13,14 @@ const jwtSecret = process.env.jwtSecret;
 const prisma = new PrismaClient();
 const app = express();
 
+// Our generated certificate and key
+const credentials = {
+    key: process.env.serverKEY,
+    cert: process.env.serverCRT,
+};
+
+// Creates https server
+const httpsServer = https.createServer(credentials, app);
 app.use(express.json());
 
 // Creating our JWT token
@@ -24,11 +33,15 @@ const createToken = (id: any) => {
 
 // Creating our authentication using JWT to verify
 const requireAuth = (req: any, res: any, next: any) => {
+    // If there is no cookies return "Unauthorized"
     if (!req.headers.cookie) {
         return res.status(401).json("Unauthorized.");
     }
+
+    // Splits our token so the encrypted JWT is accessible
     const token = req.headers.cookie.split("=")[1];
 
+    // If there is a token verify with out jwtSecret to ensure it is ours
     if (token) {
         jwt.verify(token, jwtSecret, (err: any) => {
             if (err) {
@@ -69,6 +82,7 @@ app.post("/createUser", async (req, res) => {
         data: { username: req.body.username, hashedPassword: password },
     });
 
+    // Finds the user and creates a token with the id of the user
     const findId = await prisma.user.findFirst({ where: { username: req.body.username } });
     const token = createToken(findId?.id);
 
@@ -96,6 +110,7 @@ app.post("/login", async (req, res) => {
         return res.status(400).json("Incorrect password.");
     }
 
+    // Finds the user and creates a token with the id of the user
     const findId = await prisma.user.findFirst({ where: { username: req.body.username } });
     const token = createToken(findId?.id);
 
@@ -130,4 +145,4 @@ app.post("/deleteUser", requireAuth, async (req, res) => {
 });
 
 // Starts app/backend on localhost:4321
-app.listen(4321, () => console.log("REST API server ready at: http://localhost:4321"));
+httpsServer.listen(4321, () => console.log("REST API server ready at: https://localhost:4321"));
