@@ -1,3 +1,3 @@
 fn main() {
-    slint_build::compile("ui/dashboard.slint").unwrap();
+    slint_build::compile("ui/login.slint").unwrap();
 }

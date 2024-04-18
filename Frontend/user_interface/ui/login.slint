@@ -10,10 +10,8 @@ export component AppWindow inherits Window {
     height: 1080px;
     width: 1920px;
     out property <User> currentuser;
-    out property <bool> name;
     callback request-login(User);
-    callback request-create-user(User);
-    callback create-account-btn <=> accountbtn.clicked;
+    callback request-create-user(User) -> bool;
     VerticalBox {
         width: 600px;
         height: 400px;
@@ -37,6 +35,7 @@ export component AppWindow inherits Window {
                 root.currentuser.username = usernamefield.text;
                 root.currentuser.password = passwordfield.text;
                 root.request-login(currentuser);
+                root.request-create-user(currentuser)
             }
         }
     }
@@ -44,7 +43,6 @@ export component AppWindow inherits Window {
     accountbtn := Button {
         text: "Create new account";
         clicked => {
-            name = true;
         }
     }
 }

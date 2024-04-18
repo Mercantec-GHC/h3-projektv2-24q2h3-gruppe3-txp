@@ -17,6 +17,8 @@ export component AppWindow inherits Window {
         padding: 0;
         x: 0px;
         sidebarbutton := Button {
+            x: sidebaractive ? sidebar.width - 35px : sidebar.width;
+            y: 0px;
             icon: @image-url("ui/assets/arrow-right.svg");
             text: ">";
             clicked => {
@@ -28,9 +30,9 @@ export component AppWindow inherits Window {
     GridBox {
         padding-left: sidebar.width + 20px;
         padding: 20px;
-        opacity: 20;
         Row {
             Button {
+                
                 padding: 100px;
                 text: "Snake";
             }
