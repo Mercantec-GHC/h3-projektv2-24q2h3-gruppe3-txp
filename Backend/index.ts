@@ -4,7 +4,6 @@ import express from "express";
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const https = require("https");
 
 // Getting the jwtSecret from our .env file
 const jwtSecret = process.env.jwtSecret;
@@ -12,15 +11,6 @@ const jwtSecret = process.env.jwtSecret;
 // Initializing Prisma and Express
 const prisma = new PrismaClient();
 const app = express();
-
-// Our generated certificate and key
-/*const credentials = {
-    key: process.env.serverKEY,
-    cert: process.env.serverCRT,
-};*/
-
-// Creates https server
-//const httpsServer = https.createServer(credentials, app);
 app.use(express.json());
 
 // Creating our JWT token
@@ -33,9 +23,9 @@ const createToken = (id: any) => {
 
 // Creating our authentication using JWT to verify
 const requireAuth = (req: any, res: any, next: any) => {
-    // If there is no cookies return "Unauthorized"
+    // If there is no cookies return "No cookie"
     if (!req.headers.cookie) {
-        return res.status(401).json("Unauthorized.");
+        return res.status(401).json("No cookie");
     }
 
     // Splits our token so the encrypted JWT is accessible
