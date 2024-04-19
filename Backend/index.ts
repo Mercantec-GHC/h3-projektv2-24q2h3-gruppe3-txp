@@ -145,4 +145,4 @@ app.post("/deleteUser", requireAuth, async (req, res) => {
 });
 
 // Starts app/backend on localhost:4321
-app.listen(4321, () => console.log("REST API server ready at: https://localhost:4321"));
+app.listen(process.env.PORT || 3000, () => console.log("REST API server ready at: http://localhost:4321"));
