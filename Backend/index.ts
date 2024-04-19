@@ -14,13 +14,13 @@ const prisma = new PrismaClient();
 const app = express();
 
 // Our generated certificate and key
-const credentials = {
+/*const credentials = {
     key: process.env.serverKEY,
     cert: process.env.serverCRT,
-};
+};*/
 
 // Creates https server
-const httpsServer = https.createServer(credentials, app);
+//const httpsServer = https.createServer(credentials, app);
 app.use(express.json());
 
 // Creating our JWT token
@@ -145,4 +145,4 @@ app.post("/deleteUser", requireAuth, async (req, res) => {
 });
 
 // Starts app/backend on localhost:4321
-httpsServer.listen(4321, () => console.log("REST API server ready at: https://localhost:4321"));
+app.listen(4321, () => console.log("REST API server ready at: https://localhost:4321"));
