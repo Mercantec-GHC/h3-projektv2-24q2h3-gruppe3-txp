@@ -69,7 +69,7 @@ password: string
 **Response**
 
 ```ts
-Messages: "Success" | "Please fill out all required fields." | "No user found." | "Incorrect password.";
+Messages: "Success" + JWT Cookie | "Please fill out all required fields." | "No user found." | "Incorrect password.";
 ```
 
 ### /deleteUser
@@ -77,6 +77,8 @@ Messages: "Success" | "Please fill out all required fields." | "No user found." 
 **Request**
 
 ```ts
+Requires Cookie
+
 username: string,
 password: string
 ```
@@ -92,6 +94,8 @@ Messages: "Success" | "Please fill out all required fields." | "No user found." 
 **Request**
 
 ```ts
+Requires Cookie
+
 "No request / parameters needed";
 ```
 

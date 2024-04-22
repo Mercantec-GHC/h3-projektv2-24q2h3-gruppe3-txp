@@ -72,12 +72,7 @@ app.post("/createUser", async (req, res) => {
         data: { username: req.body.username, hashedPassword: password },
     });
 
-    // Finds the user and creates a token with the id of the user
-    const findId = await prisma.user.findFirst({ where: { username: req.body.username } });
-    const token = createToken(findId?.id);
-
-    // Sends message "Success" and JWT cookie when user is logged in
-    res.cookie("JWT", token, { maxAge: maxAge * 1000, secure: true, httpOnly: true });
+    // Sends message "Success" when user is created
     res.status(201).json("Success");
 });
 
