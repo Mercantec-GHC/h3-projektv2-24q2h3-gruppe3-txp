@@ -1,19 +1,21 @@
 import { GridBox, Button, Slider } from "std-widgets.slint";
 import { palette } from "./common.slint";
+import { LoginPage } from "login.slint";
+import { SignUpPage } from "signup.slint";
+import { Page, pageination } from "common.slint";
 
-export component AppWindow inherits Window {
+export component Dashboard inherits Page {
     background: @linear-gradient(45deg, palette.background 20%, palette.main 100%);
-    width: 1600px;
-    height: 900px;
+    width: 100%;
+    height: 100%;
     in-out property <bool> sidebaractive: true;
-    in-out property <int> activepage;
     in-out property <int> sbwidth;
     // should only be shown if sidebaractive is true
         sidebar := Rectangle {
         height: 100%;
         animate width { duration: 150ms; }
         width: sidebaractive ? 20% : 0%;
-        background: #ffffff3e;
+        background: palette.background;
         padding: 0;
         x: 0px;
         sidebarbutton := Button {
@@ -25,31 +27,51 @@ export component AppWindow inherits Window {
                 sidebaractive = ! sidebaractive;
             }
         }
-    }
 
-    GridBox {
-        padding-left: sidebar.width + 20px;
-        padding: 20px;
-        Row {
-            Button {
-                
-                padding: 100px;
-                text: "Snake";
-            }
-
-            Button {
-                text: "Pong";
+        Rectangle {
+            Text {
+                text: "clickme";
+                TouchArea {
+                    width: 150%;
+                    height: 150%;
+                    clicked => {
+                        pageination.activepage = 2;
+                    }
+                }
             }
         }
+    }
 
-        Row {
-            Button {
-                text: "BrickBreaker";
+    mainview := Rectangle {
+        HorizontalLayout {
+            padding-left: sidebar.width + 20px;
+            padding: 20px;
+            Dashboard := Rectangle {
+                GridBox {
+                    Row {
+                        Button {
+                            padding: 100px;
+                            text: "Snake";
+                        }
+
+                        Button {
+                            text: "Pong";
+                        }
+                    }
+
+                    Row {
+                        Button {
+                            text: "BrickBreaker";
+                        }
+
+                        Button {
+                            text: "Platformer";
+                        }
+                    }
+                }
             }
 
-            Button {
-                text: "Platformer";
-            }
+            // y: root.activepage == 1 ? 0 : root.activepage < 0 ? self.height * 0 : parent.height;
         }
     }
 }

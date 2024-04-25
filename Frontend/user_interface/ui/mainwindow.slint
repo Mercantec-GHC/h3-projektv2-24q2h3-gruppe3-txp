@@ -1,0 +1,30 @@
+import {palette, pageination} from "./common.slint";
+import { LoginPage } from "login.slint";
+import { SignUpPage } from "signup.slint";
+import { Dashboard } from "dashboard.slint";
+
+
+export component AppWindow inherits Window {
+    width: 1080px;
+    height: 1080px;
+    if pageination.activepage == 0 : Dashboard {
+        x: 0px;
+        visible: true;
+    }
+    if pageination.activepage == 1 : SignUpPage{
+        visible: true;
+
+    }
+    if pageination.activepage == 2 : LoginPage{
+        visible: true;
+
+    }
+    if pageination.activepage == 3 : LoginPage{
+        visible: true;
+
+    }
+    if pageination.activepage == 4 : LoginPage{
+        visible: true;
+
+    }
+}

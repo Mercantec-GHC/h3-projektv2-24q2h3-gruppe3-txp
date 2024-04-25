@@ -1,4 +1,5 @@
 import { Button, VerticalBox, LineEdit, ProgressIndicator } from "std-widgets.slint";
+import { Page, pageination, BackToDashBoard } from "common.slint";
 
 
 export struct User {
@@ -6,12 +7,14 @@ export struct User {
     password: string,
 }
 
-export component AppWindow inherits Window {
+export component LoginPage inherits Page {
     height: 1080px;
     width: 1920px;
     out property <User> currentuser;
     callback request-login(User);
-    callback request-create-user(User) -> bool;
+    callback request-create-user(User);
+    BackToDashBoard { }
+
     VerticalBox {
         width: 600px;
         height: 400px;
@@ -35,14 +38,14 @@ export component AppWindow inherits Window {
                 root.currentuser.username = usernamefield.text;
                 root.currentuser.password = passwordfield.text;
                 root.request-login(currentuser);
-                root.request-create-user(currentuser)
             }
         }
-    }
 
-    accountbtn := Button {
-        text: "Create new account";
-        clicked => {
+        accountbtn := Button {
+            text: "Create new account";
+            clicked => {
+                pageination.activepage = 1;
+            }
         }
     }
 }
