@@ -15,17 +15,15 @@ export global palette {
         pressed: root.primary-push-button-base.darker(40%),
         hovered: root.primary-push-button-base.darker(20%),
     };
-    
 }
 
-export component Page inherits Rectangle{
+export component Page inherits Rectangle {
     background: palette.background;
     callback back();
-    
 }
 
 export global pageination {
-    in-out property <int> activepage : 0;
+    in-out property <int> activepage: 0;
 }
 
 export component BackToDashBoard {
@@ -38,7 +36,7 @@ export component BackToDashBoard {
         Text {
             text: "X";
         }
-        
+
         TouchArea {
             width: parent.width;
             height: parent.height;
@@ -47,4 +45,23 @@ export component BackToDashBoard {
             }
         }
     }
+}
+
+export global User {
+    in-out property <string> Username;
+    in-out property <int> Identifier;
+}
+
+export struct Credentials {
+    username: string,
+    password: string,
+}
+
+export global callbacks {
+    callback request-login(Credentials);
+    callback request-create-user(Credentials);
+}
+
+export global properties {
+    in-out property <Credentials> currentuser;
 }

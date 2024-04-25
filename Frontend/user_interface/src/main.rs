@@ -11,21 +11,15 @@ struct ServerResponse {
     message: String,
 }
 
-#[derive(Serialize,Deserialize)]
-struct LoginCredentials {
-    username: String,
-    password: String,
-}
 fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
-    
-    
-    ui.on_request_login({
-        move |data: User| {
-            let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
-            slint::spawn_local( async move {
+    //ui.global::<callbacks>().on_request_login
+    ui.on_login({
+        move |data: Credentials| {
+            // let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
+            // slint::spawn_local( async move {
 
-            })
+            // })
             //should send username and hashed password to api at {API-CON-STRING}
             //after awaiting and recieving a response it should either log in and open up the dashboard
             //or an error message should pop up asking the user to try again or create a new account
@@ -37,8 +31,8 @@ fn main() -> Result<(), slint::PlatformError> {
     //should check if the data is proper
     //as the second after which it should send a post request to api and then "redirect" to login page
     //while displaying a confirmation of some sort.
-    ui.on_request_create_user({
-        move |data: User| {
+    ui.on_createacc({
+        move |data: Credentials| {
             print!("{data:?}");
             //needs to use slint::spawn_local()
             //need to figure out how to use said functionality

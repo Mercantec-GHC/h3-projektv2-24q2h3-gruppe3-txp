@@ -1,20 +1,14 @@
 import { Button, VerticalBox, LineEdit, ProgressIndicator } from "std-widgets.slint";
-import { Page, pageination, BackToDashBoard } from "common.slint";
+import { Page, pageination, BackToDashBoard, callbacks, properties } from "common.slint";
 
 
-export struct User {
-    username: string,
-    password: string,
-}
+
 
 export component LoginPage inherits Page {
-    height: 1080px;
-    width: 1920px;
-    out property <User> currentuser;
-    callback request-login(User);
-    callback request-create-user(User);
+    height: 100%;
+    width: 100%;
     BackToDashBoard { }
-
+    
     VerticalBox {
         width: 600px;
         height: 400px;
@@ -35,9 +29,9 @@ export component LoginPage inherits Page {
             height: parent.height / 10;
             text: "Login";
             clicked => {
-                root.currentuser.username = usernamefield.text;
-                root.currentuser.password = passwordfield.text;
-                root.request-login(currentuser);
+                properties.currentuser.username = usernamefield.text;
+                properties.currentuser.password = passwordfield.text;
+                callbacks.request-login(properties.currentuser);
             }
         }
 

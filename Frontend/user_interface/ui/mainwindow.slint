@@ -1,17 +1,19 @@
-import {palette, pageination} from "./common.slint";
+import {palette, pageination, callbacks, properties, Credentials} from "./common.slint";
 import { LoginPage } from "login.slint";
 import { SignUpPage } from "signup.slint";
 import { Dashboard } from "dashboard.slint";
 
 
-export component AppWindow inherits Window {
+export  component AppWindow inherits Window {
+    callback login <=> callbacks.request-login;
+    callback createacc <=> callbacks.request-create-user;
     width: 1080px;
     height: 1080px;
     if pageination.activepage == 0 : Dashboard {
         x: 0px;
         visible: true;
     }
-    if pageination.activepage == 1 : SignUpPage{
+    if pageination.activepage == 1 : test := SignUpPage{
         visible: true;
 
     }
