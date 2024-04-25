@@ -29,7 +29,7 @@ const requireAuth = (req: any, res: any, next: any) => {
     }
 
     // Splits our token so the encrypted JWT is accessible
-    const token = req.headers.cookie.split("=")[1];
+    const token = req.headers["cookie"]?.split("JWT=")[1];
 
     // If there is a token verify with out jwtSecret to ensure it is ours
     if (token) {
@@ -129,5 +129,21 @@ app.post("/deleteUser", requireAuth, async (req, res) => {
     res.status(200).json("Success");
 });
 
+// API ENDPOINT - /getUserById
+app.post("/getUserById", requireAuth, async (req, res) => {
+    let token = req.headers["cookie"]?.split("JWT=")[1];
+    if (token) {
+        jwt.verify(token, jwtSecret, async (err: any, decodedToken: any) => {
+            if (err) {
+                res.status(400).json("Unauthorized.");
+            } else {
+                let user = await prisma.user.findUnique({ where: { id: decodedToken.id } });
+
+                res.status(200).json(user);
+            }
+        });
+    }
+});
+
 // Starts app/backend on localhost:4321
-app.listen(process.env.PORT || 3000, () => console.log("REST API server ready at: http://localhost:4321"));
+app.listen(process.env.PORT || 4321, () => console.log("REST API server ready at: http://localhost:4321"));

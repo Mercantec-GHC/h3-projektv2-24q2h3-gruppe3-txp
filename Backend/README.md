@@ -104,3 +104,19 @@ Requires Cookie
 ```ts
 Messages: "List of every users data";
 ```
+
+### /getUserById
+
+**Request**
+
+```ts
+Requires Cookie
+
+"No request / parameters needed";
+```
+
+**Response**
+
+```ts
+Messages: "List user data found by id from JWT";
+```
