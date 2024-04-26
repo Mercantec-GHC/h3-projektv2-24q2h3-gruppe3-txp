@@ -131,14 +131,19 @@ app.post("/deleteUser", requireAuth, async (req, res) => {
 
 // API ENDPOINT - /getUserById
 app.post("/getUserById", requireAuth, async (req, res) => {
+    // Splits our token so the encrypted JWT is accessible
     let token = req.headers["cookie"]?.split("JWT=")[1];
+
+    // If there is a token verify with out jwtSecret to ensure it is ours
     if (token) {
         jwt.verify(token, jwtSecret, async (err: any, decodedToken: any) => {
             if (err) {
                 res.status(400).json("Unauthorized.");
             } else {
+                // Finds user where the id from the JWT matches with the id in the database
                 let user = await prisma.user.findUnique({ where: { id: decodedToken.id } });
 
+                // Sends user data
                 res.status(200).json(user);
             }
         });
