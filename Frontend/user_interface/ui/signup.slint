@@ -1,0 +1,61 @@
+import { Button, VerticalBox, LineEdit, ProgressIndicator } from "std-widgets.slint";
+import { Page, pageination, BackToDashBoard, callbacks, properties } from "common.slint";
+
+
+export struct User {
+    username: string,
+    password: string,
+}
+
+export component SignUpPage inherits Page {
+    height: 100%;
+    width: 100%;
+    in-out property <bool> usercreated;
+    BackToDashBoard { }
+
+    VerticalBox {
+        width: 600px;
+        height: 400px;
+        usernamefield := LineEdit {
+            height: parent.height / 3;
+            placeholder-text: "username";
+            text: "";
+        }
+
+        passwordfield0 := LineEdit {
+            height: parent.height / 3;
+            placeholder-text: "password";
+            input-type: password;
+            text: "";
+        }
+
+        passwordfield1 := LineEdit {
+            height: parent.height / 3;
+            placeholder-text: "password";
+            input-type: password;
+            text: "";
+        }
+
+        if usercreated: Rectangle {
+            Text {
+                text: "user created";
+            }
+        }
+        accountbtn := Button {
+            height: parent.height / 10;
+            text: "Create account";
+            clicked => {
+                properties.currentuser.username = usernamefield.text;
+                properties.currentuser.password = passwordfield0.text;
+                callbacks.request-create-user(properties.currentuser)
+            }
+        }
+
+        loginbutton := Button {
+            text: "Login page";
+            clicked => {
+                pageination.activepage = 2;
+            }
+        }
+    }
+}

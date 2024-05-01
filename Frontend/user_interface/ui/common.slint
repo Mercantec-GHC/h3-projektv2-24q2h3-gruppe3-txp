@@ -1,0 +1,101 @@
+import { Button } from "std-widgets.slint";
+struct ButtonColors {
+    base: color,
+    pressed: color,
+    hovered: color,
+}
+
+export global palette {
+    in property <bool> night-mode: false;
+    out property <color> text: night-mode ? #000000 : #FFFFFF;
+    out property <color> main: #ff6f00;
+    out property <color> background: #2e2d2d;
+    out property <color> primary-push-button-base: #ff0000;
+    out property <ButtonColors> primary-push-button-colors: {
+        base: root.primary-push-button-base,
+        pressed: root.primary-push-button-base.darker(40%),
+        hovered: root.primary-push-button-base.darker(20%),
+    };
+}
+
+export component Page inherits Rectangle {
+    background: palette.background;
+    callback back();
+}
+
+export global pageination {
+    in-out property <int> activepage: 0;
+}
+
+export component BackToDashBoard {
+    x: 0;
+    y: 0;
+    width: 20px;
+    height: 20px;
+    Rectangle {
+        background: red;
+        Text {
+            text: "X";
+        }
+
+        TouchArea {
+            width: parent.width;
+            height: parent.height;
+            clicked => {
+                pageination.activepage = 0;
+            }
+        }
+    }
+}
+
+export global User {
+    in-out property <string> Username;
+    in-out property <int> Identifier;
+}
+
+export struct Credentials {
+    username: string,
+    password: string,
+}
+
+export global callbacks {
+    callback request-login(Credentials);
+    callback request-create-user(Credentials);
+}
+
+export global properties {
+    in-out property <Credentials> currentuser;
+    in-out property <bool> usercreated;
+    in-out property <bool> sidebaractive: true;
+}
+
+export component Sidebar {
+    sidebar := Rectangle {
+        width: properties.sidebaractive ? 20% : 0%;
+        height: 100%;
+        animate width { duration: 150ms; }
+        background: palette.background;
+        padding: 0;
+        sidebarbutton := Button {
+            x: properties.sidebaractive ? sidebar.width - 35px : sidebar.width;
+            y: 0px;
+            icon: properties.sidebaractive ? @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-left.svg") : @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-right.svg");
+            clicked => {
+                properties.sidebaractive = ! properties.sidebaractive;
+            }
+        }
+
+        Rectangle {
+            Text {
+                text: "clickme";
+                TouchArea {
+                    width: 150%;
+                    height: 150%;
+                    clicked => {
+                        pageination.activepage = 2;
+                    }
+                }
+            }
+        }
+    }
+}

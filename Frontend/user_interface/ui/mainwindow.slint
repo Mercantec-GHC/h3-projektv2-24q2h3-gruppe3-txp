@@ -1,0 +1,35 @@
+import {palette, pageination, callbacks, properties, Credentials} from "./common.slint";
+import { LoginPage } from "login.slint";
+import { SignUpPage } from "signup.slint";
+import { Dashboard } from "dashboard.slint";
+import { Button } from "std-widgets.slint";
+import { Sidebar } from "common.slint";
+
+
+export  component AppWindow inherits Window {
+    min-width: 480px;
+    min-height: 480px;
+    callback login <=> callbacks.request-login;
+    callback createacc <=> callbacks.request-create-user;
+    // should only be shown if sidebaractive is true
+   
+    if pageination.activepage == 0: Dashboard {
+        x: 0px;
+        visible: true;
+        Sidebar {
+            x: 0px;
+        }
+    }
+    if pageination.activepage == 1: test := SignUpPage {
+        visible: true;
+    }
+    if pageination.activepage == 2: LoginPage {
+        visible: true;
+    }
+    if pageination.activepage == 3: LoginPage {
+        visible: true;
+    }
+    if pageination.activepage == 4: LoginPage {
+        visible: true;
+    }
+}
