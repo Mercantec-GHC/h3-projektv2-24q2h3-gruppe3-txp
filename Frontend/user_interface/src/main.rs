@@ -1,6 +1,8 @@
 use std::{collections::HashMap, env};
-use reqwest::{Error, Response};
+use reqwest::{Error, Response, Client};
 use serde::{Deserialize, Serialize};
+use slint::Global;
+use dotenv;
 
 slint::include_modules!();
 
@@ -13,6 +15,7 @@ struct ServerResponse {
 
 fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
+    let _ = dotenv::dotenv().is_ok();
     //ui.global::<callbacks>().on_request_login
     ui.on_login({
         move |data: Credentials| {
@@ -41,10 +44,10 @@ fn main() -> Result<(), slint::PlatformError> {
             slint::spawn_local( async move {
                     let res: Result<Response,Error>  = tokio_runtime.spawn(async move {
                         // This code is running on the Tokio runtime's thread, you can await futures that depends on Tokio here.
-                        let mut map = HashMap::new();
+                        let mut map: HashMap<&str, String> = HashMap::new();
                         map.insert("username", data.username.to_string());
                         map.insert("password", data.password.to_string());
-                        let client = reqwest::Client::new();
+                        let client: Client = Client::new();
                         // fn test() -> String{
                         //     return format!(
                         //         "{}{}",
@@ -55,7 +58,6 @@ fn main() -> Result<(), slint::PlatformError> {
                         return response;
                     }).await.unwrap(); 
                     if res.is_ok() {
-                        //ui.set_usercreated(true)
 
                     }
                     

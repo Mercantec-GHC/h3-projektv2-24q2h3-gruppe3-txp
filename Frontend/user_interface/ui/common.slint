@@ -1,3 +1,4 @@
+import { Button } from "std-widgets.slint";
 struct ButtonColors {
     base: color,
     pressed: color,
@@ -64,4 +65,37 @@ export global callbacks {
 
 export global properties {
     in-out property <Credentials> currentuser;
+    in-out property <bool> usercreated;
+    in-out property <bool> sidebaractive: true;
+}
+
+export component Sidebar {
+    sidebar := Rectangle {
+        width: properties.sidebaractive ? 20% : 0%;
+        height: 100%;
+        animate width { duration: 150ms; }
+        background: palette.background;
+        padding: 0;
+        sidebarbutton := Button {
+            x: properties.sidebaractive ? sidebar.width - 35px : sidebar.width;
+            y: 0px;
+            icon: properties.sidebaractive ? @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-left.svg") : @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-right.svg");
+            clicked => {
+                properties.sidebaractive = ! properties.sidebaractive;
+            }
+        }
+
+        Rectangle {
+            Text {
+                text: "clickme";
+                TouchArea {
+                    width: 150%;
+                    height: 150%;
+                    clicked => {
+                        pageination.activepage = 2;
+                    }
+                }
+            }
+        }
+    }
 }

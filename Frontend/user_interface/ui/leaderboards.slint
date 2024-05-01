@@ -1,0 +1,43 @@
+import {palette, Page} from "common.slint";
+export struct User {
+    name: string,
+    score: int,
+} 
+
+export component leaderboard inherits Page {
+    in-out property <[User]> user:[{ name:"phami", score:0 }, { name: "Druumihra", score:9999999 }];
+    Rectangle {
+        min-height: 480px;
+        min-width: 480px;
+        height: 800px;
+        width: 800px;
+        background: palette.background;
+        Text {
+            x: 0px;
+            color: palette.main;
+            text: "test";
+        }
+
+        VerticalLayout {
+            for user in user: Rectangle {
+                width: 100px;
+                height: 100px;
+                background: #dc1b1b5f;
+                padding: 20px;
+                Text {
+                    x: 0px;
+                    text: "playername";
+                }
+
+                Text {
+                    x: 20px;
+                    text: "score:";
+                }
+            }
+        }
+    }
+}
+
+export component leaderboard_slot {
+    Rectangle { }
+}
