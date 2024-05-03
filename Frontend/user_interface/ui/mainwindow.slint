@@ -68,9 +68,10 @@ export component AppWindow inherits Window {
             }
         }
         Rectangle {
+            y:20px;
             visible: properties.sidebaractive ? true : false;
             Text {
-                text: "clickme";
+                text: "highscore";
                 TouchArea {
                     width: 150%;
                     height: 150%;
