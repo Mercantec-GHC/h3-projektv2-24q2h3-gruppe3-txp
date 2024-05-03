@@ -1,37 +1,52 @@
 import {palette, Page} from "common.slint";
+import "C:\Users\teisb\AppData\Local\Microsoft\Windows\Fonts/RandyGGRegular.ttf";
 export struct User {
     name: string,
     score: int,
 } 
 
 export component leaderboard inherits Page {
-    in-out property <[User]> user:[{ name:"phami", score:0 }, { name: "Druumihra", score:9999999 }];
+    in-out property <[User]> user:[
+        { name:"Phami", score:0 },
+        { name: "Druumihra", score:9999999 },
+        { name: "Patrick", score: 10 },
+        { name:"Phami", score:0 },
+        { name: "Druumihra", score:9999999 }
+    ];
     Rectangle {
         min-height: 480px;
         min-width: 480px;
-        height: 800px;
+        height: 400px;
         width: 800px;
         background: palette.background;
-        Text {
-            x: 0px;
-            color: palette.main;
-            text: "test";
-        }
-
         VerticalLayout {
+            padding: 20px;
+            width: 400px;
+            spacing: 20px;
             for user in user: Rectangle {
-                width: 100px;
-                height: 100px;
-                background: #dc1b1b5f;
-                padding: 20px;
+                background: @linear-gradient(45deg, blue 0%, palette.main 50%, palette.background 100%);
+                height: 50px;
+                border-width: 1px;
+                border-color: #6e68687d;
+                border-radius: 20px;
                 Text {
-                    x: 0px;
-                    text: "playername";
+                    font-family: "RandyGG";
+                    x: 30px;
+                    font-size: 25px;
+                    color: #e9e2e2;
+                    text: @tr("{}", user.name);
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
                 }
 
                 Text {
-                    x: 20px;
-                    text: "score:";
+                    x: 20px + parent.width / 2;
+                    font-family: "RandyGG";
+                    font-size: 16px;
+                    color: #ffffff;
+                    text: @tr("score: {}", user.score);
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
                 }
             }
         }

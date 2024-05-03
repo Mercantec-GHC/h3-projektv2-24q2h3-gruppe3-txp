@@ -4,20 +4,16 @@ import { LoginPage } from "login.slint";
 import { SignUpPage } from "signup.slint";
 import { Page, pageination, properties} from "common.slint";
 
-export component Dashboard inherits Page {
+export component Dashboard inherits Page {  
     background: @linear-gradient(45deg, palette.background 20%, palette.main 100%);
-    width: properties.sidebaractive ? 80% : 100%;
-    x: properties.sidebaractive ? 20% * 1px : 0;
     height: 100%;
     mainview := Rectangle {
         HorizontalLayout {
-            padding-left: properties.sidebaractive ? 20% * 1.002px : 0px;
             padding: 20px;
             Dashboard := Rectangle {
                 GridBox {
                     Row {
                         Button {
-                            padding: 100px;
                             text: "Snake";
                         }
 
