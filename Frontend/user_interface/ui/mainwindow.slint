@@ -46,7 +46,7 @@ export component AppWindow inherits Window {
         sidebarbutton := Button {
             x: properties.sidebaractive ? sidebar.width - 35px : sidebar.width;
             y: 0px;
-            icon: properties.sidebaractive ? @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-left.svg") : @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-right.svg");
+           // icon: properties.sidebaractive ? @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-left.svg") : @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-right.svg");
             clicked => {
                 properties.sidebaractive = ! properties.sidebaractive;
             }
@@ -67,5 +67,20 @@ export component AppWindow inherits Window {
                 }
             }
         }
+        Rectangle {
+            visible: properties.sidebaractive ? true : false;
+            Text {
+                text: "clickme";
+                TouchArea {
+                    width: 150%;
+                    height: 150%;
+                    clicked => {
+                        pageination.activepage = 3;
+                        properties.sidebartest = false;
+                        properties.sidebaractive = false;
+                    }
+                }
+            }
     }
+}
 }
