@@ -20,10 +20,6 @@ void setup() {
   carrier.display.fillScreen(ST7735_GREY);
   carrier.display.setTextColor(ST7735_WHITE);
 
-  // Ændrer på vores treshold så vores knapper ikke er så sensitivity
-  unsigned int threshold = 500;
-  carrier.Buttons.updateConfig(threshold);
-
   // Indsætter vores xy-punkter
   snakeX = 128;
   snakeY = 150;
@@ -91,6 +87,7 @@ void loop() {
     carrier.display.setTextSize(1);
     carrier.display.print("START");
 
+    delay(500);
     while (true) {
       carrier.Buttons.update();
       if (carrier.Buttons.onTouchDown(TOUCH4)) {
@@ -208,10 +205,10 @@ void loop() {
     carrier.display.setTextSize(1);
     carrier.display.print("START");
 
+    delay(500);
     while (true) {
       carrier.Buttons.update();
       if (carrier.Buttons.onTouchDown(TOUCH4)) {
-
         break;
       }
     }
@@ -288,6 +285,7 @@ void loop() {
     carrier.display.setTextSize(1);
     carrier.display.print("START");
 
+    delay(500);
     while (true) {
       carrier.Buttons.update();
       if (carrier.Buttons.onTouchDown(TOUCH4)) {

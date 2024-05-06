@@ -14,23 +14,22 @@ model User {
   username       String @unique
   hashedPassword String
 
-  Highscore Highscore[]
-  Map       Map[]
-  Replay    Replay[]
-  Skin      Skin[]
+  Score  Score[]
+  Map    Map[]
+  Replay Replay[]
+  Skin   Skin[]
 }
 
-model Highscore {
+model Score {
   id Int @id @default(autoincrement())
 
   userRelation User @relation(fields: [userId], references: [id])
   userId       Int
 
   score Int
-  game  String
 
   replayRelation Replay @relation(fields: [replayId], references: [id])
-  replayId       Int
+  replayId       Int    @default(autoincrement())
   gameRelation   Game   @relation(fields: [gameId], references: [id])
   gameId         Int
 }
@@ -45,15 +44,15 @@ model Map {
 }
 
 model Game {
-  id   Int    @id @default(autoincrement())
-  game String
+  id     Int @id @default(autoincrement())
+  gameId Int
 
   mapRelation  Map  @relation(fields: [mapId], references: [id])
   mapId        Int
   skinRelation Skin @relation(fields: [skinId], references: [id])
   skinId       Int
 
-  Highscore Highscore[]
+  Score Score[]
 }
 
 model Replay {
@@ -64,7 +63,7 @@ model Replay {
 
   replay String
 
-  Highscore Highscore[]
+  Score Score[]
 }
 
 model Skin {

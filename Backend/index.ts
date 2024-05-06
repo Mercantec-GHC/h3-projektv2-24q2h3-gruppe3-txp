@@ -150,5 +150,60 @@ app.post("/getUserById", requireAuth, async (req, res) => {
     }
 });
 
+// API ENDPOINT - /saveScore
+app.post("/saveScore", requireAuth, async (req, res) => {
+    let token = req.headers["cookie"]?.split("JWT=")[1];
+    // If there is a token verify with out jwtSecret to ensure it is ours
+    if (token) {
+        jwt.verify(token, jwtSecret, async (err: any, decodedToken: any) => {
+            if (err) {
+                res.status(400).json("Unauthorized.");
+            } else {
+                // Finds user where the id from the JWT matches with the id in the database
+                const user = await prisma.user.findUnique({ where: { id: decodedToken.id } });
+
+                if (!user) {
+                    res.status(404).json("User not found");
+                    return;
+                }
+
+                const replay = await prisma.replay.create({ data: { userId: user.id, replay: "replay/file/path" } });
+
+                const map = await prisma.map.create({ data: { userId: user.id } });
+
+                if (!map) {
+                    res.status(404).json("Map not found");
+                    return;
+                }
+
+                const skin = await prisma.skin.create({ data: { skin_path: "skin/file/path", userId: user.id } });
+
+                if (!skin) {
+                    res.status(404).json("Skin not found");
+                    return;
+                }
+
+                const game = await prisma.game.create({ data: { mapId: map.id, skinId: skin.id, gameId: req.body.gameId } });
+
+                await prisma.score.create({
+                    data: { userId: user?.id, score: req.body.score, gameId: game.gameId, replayId: replay.id },
+                });
+                res.status(201).json("Success");
+            }
+        });
+    }
+});
+
+// API ENDPOINT - /getHighscores
+app.get("/getHighscores", requireAuth, async (req, res) => {
+    // Searches for top-score users by requested gameId (1 = snake, 2 = brick breaker, 3 = pong)
+    const highscores = await prisma.score.findMany({
+        where: { gameId: req.body.gameId },
+        distinct: ["userId"],
+        orderBy: { score: "desc" },
+    });
+    res.status(200).json(highscores);
+});
+
 // Starts app/backend on localhost:4321
 app.listen(process.env.PORT || 4321, () => console.log("REST API server ready at: http://localhost:4321"));

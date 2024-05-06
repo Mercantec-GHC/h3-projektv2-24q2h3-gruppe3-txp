@@ -120,3 +120,40 @@ Requires Cookie
 ```ts
 Messages: "List user data found by id from JWT";
 ```
+
+### /saveScore
+
+**Request**
+
+```ts
+Requires Cookie
+
+score: int,
+gameId: int
+
+!OBS!
+NEEDS REPLAY PATH (CURRENTLY "replay/file/path")
+NEEDS SKIN PATH (CURRENTLY "skin/file/path")
+```
+
+**Response**
+
+```ts
+Messages: "User not found | Map not found | Skin not found | Success";
+```
+
+### /getHighscores
+
+**Request**
+
+```ts
+Requires Cookie
+
+gameId: int
+```
+
+**Response**
+
+```ts
+Messages: "List user game data sorted by highest score found by gameId";
+```
