@@ -6,25 +6,25 @@ component LeaderboardSlot inherits Rectangle {
         spacing: 20px;
         for user in properties.user: Rectangle {
             background: @linear-gradient(45deg, blue 0%, palette.main 50%, palette.background 100%);
-            height: parent.height/10;
-            width: parent.width*0.9;
+            height: parent.height / 10;
+            width: parent.width;
             border-width: 1px;
             border-color: #6e68687d;
             border-radius: 20px;
             Text {
                 font-family: "RandyGG";
-                x: parent.width*0.05;
-                font-size: parent.height/3;
-                color: #e9e2e2;
+                x: parent.width * 0.05;
+                font-size: parent.height / 3;
+                color: #ffffff;
                 text: @tr("{}", user.name);
                 vertical-alignment: center;
                 horizontal-alignment: center;
             }
-            
+
             Text {
-                x: 20px + parent.width / 2;
+                x: 10px + parent.width / 2;
                 font-family: "RandyGG";
-                font-size: parent.height/3;
+                font-size: parent.height / 3;
                 color: #ffffff;
                 text: @tr("score: {}", user.score);
                 vertical-alignment: center;
@@ -34,48 +34,57 @@ component LeaderboardSlot inherits Rectangle {
     }
 }
 
-export component leaderboard{
-
+//Added states should possibly be implemented on other things
+export component leaderboard {
     min-height: 400px;
-
-        padding-left: 5px;
-        Rectangle {
-            x: parent.width*0;
-            width: root.width >= 500px ? parent.width/3 : parent.width;
-            Text {
-                y:5px;
-                Rectangle {
-
-                }
-                text: "Snake";
+    padding-left: 5px;
+    Rectangle {
+        x: parent.width * 0;
+        states [
+            solo when parent.width <= 500px: {
+                width: parent.width;
             }
-            LeaderboardSlot {
-                y: parent.height/20;
+            duo when parent.width >= 500px && parent.width <= 900px: {
+                width: parent.width / 2;
             }
+            trio when parent.width >= 900px: {
+                width: parent.width / 3;
+            }
+        ]
+        Text {
+            y: 5px;
+            Rectangle { }
+
+            text: "Snake";
         }
-        if root.width >= 500px :Rectangle {
-            x: parent.width/3;
 
-            width: parent.width/3;
-            Text {
-                y:5px;
-                text: "Pong";
-            }
-            LeaderboardSlot {
-                y: parent.height/20;
-            }
-        }    
-        if root.width >= 900px : Rectangle {
-            x: parent.width/3*2;
-            width: parent.width/3;
-            Text {
-                y:5px;
-                text: "Brick Breaker";
-            }
-            LeaderboardSlot {
-                y: parent.height/20;
-            }
-        }    
+        LeaderboardSlot {
+            y: parent.height / 20;
+        }
     }
 
+    if root.width >= 500px:Rectangle {
+        x: root.width >= 900px ? parent.width / 3 : parent.width / 2;
+        width: root.width >= 900px ? parent.width / 3 : parent.width / 2;
+        Text {
+            y: 5px;
+            text: "Pong";
+        }
 
+        LeaderboardSlot {
+            y: parent.height / 20;
+        }
+    }
+    if root.width >= 900px: Rectangle {
+        x: parent.width / 3 * 2;
+        width: parent.width / 3;
+        Text {
+            y: 5px;
+            text: "Brick Breaker";
+        }
+
+        LeaderboardSlot {
+            y: parent.height / 20;
+        }
+    }
+}

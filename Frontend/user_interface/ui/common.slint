@@ -14,6 +14,7 @@ export global palette {
     out property <color> text: night-mode ? #000000 : #FFFFFF;
     out property <color> main: #ff6f00;
     out property <color> background: #2e2d2d;
+    out property <color> inactive: #ffffff;
     out property <color> primary-push-button-base: #ff0000;
     out property <ButtonColors> primary-push-button-colors: {
         base: root.primary-push-button-base,
@@ -81,4 +82,9 @@ export global properties {
         { name:"Phami", score:0 },
         { name: "Druumihra", score:9999999 }
     ];
+    in-out property <bool> logged-in: true;
+    in-out property <string> instanceId;
+    in-out property <string> date: "00:00:0000";
+    in-out property <string> time: "00:00";
+    out property <[string]> games: ["Snake", "Brick Breaker", "Pong", "side-scroller"];
 }

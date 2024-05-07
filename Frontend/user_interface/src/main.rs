@@ -13,6 +13,7 @@ struct ServerResponse {
     message: String,
 }
 
+const API_CON:&str ="https://h3-projektv2-24q2h3-gruppe3-txp.onrender.com/";
 fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new()?;
     let _ = dotenv::dotenv().is_ok();

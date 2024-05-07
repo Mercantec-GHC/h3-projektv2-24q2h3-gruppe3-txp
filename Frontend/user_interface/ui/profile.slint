@@ -1,0 +1,61 @@
+import {palette, pageination, callbacks, properties, Credentials} from "./common.slint";
+import { Page } from "common.slint";
+
+export component Profile {
+    width: 100%;
+    height: 100%;
+    userlabel := Rectangle {
+        width: 95%;
+        height: 10%;
+        background: red;
+        x: parent.width * 0.025;
+        y: 10px;
+        border-color: blue;
+        border-width: 2px;
+        Text {
+            x: 0px;
+            y: 0px;
+            text: @tr("{}", properties.currentuser.username);
+        }
+
+        //need to get current date
+        Text {
+            x: parent.width * 0.90;
+            y: parent.height / 3;
+            text: @tr("{}", properties.date);
+        }
+
+        Text {
+            x: parent.width * 0.90;
+            y: parent.height * 2 / 3;
+            text: @tr("{}",properties.time);
+        }
+    }
+
+    topscores := Rectangle {
+        background: red;
+        height: 40%;
+        width: 40%;
+        x: parent.width * 0.025;
+        y: parent.height / 7;
+        for game in properties.games: Rectangle {
+            Text {
+                //   text: @tr("{}", game.score[1]);
+            }
+        }
+    }
+
+    gamescores := Rectangle {
+        background: red;
+        height: 80%;
+        width: 27.5%;
+        x: parent.width * 0.7;
+        y: parent.height / 7;
+        for game in properties.games: Rectangle {
+            
+            Text {
+                text: @tr("{}", game);
+            }
+        }
+    }
+}
