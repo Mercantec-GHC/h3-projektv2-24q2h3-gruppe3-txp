@@ -9,8 +9,11 @@ MKRIoTCarrier carrier;
 #define RED 0xF800
 #define GREY 0x18E3
 #define BLACK 0x0000
+#define GREEN 0x0400
+bool top = false;
+bool bot = false;
 
-// Opretter vores snake punkter
+
 bool retry;
 float x, y, z;
 struct location {
@@ -18,6 +21,13 @@ struct location {
   float Y;
 };
 int p = 0;
+int scoreCounter = 0;
+int scoreX = 110;
+int scoreY = 35;
+int angle = 0;
+int turnTime = 0;
+bool dead = false;
+bool playMusic = false;
 
 void setup() {
   Serial.begin(9600);
@@ -33,6 +43,7 @@ void setup() {
 void loop() {
   location snake = { 120, 120 };
   location tail[30];
+  dead = false;
   // Laver main screen
   carrier.display.setCursor(55, 110);
   carrier.display.setTextSize(2);
@@ -115,30 +126,27 @@ void loop() {
         carrier.display.setCursor(105, 210);
         carrier.display.setTextSize(1);
         carrier.display.print("START");
-
-        bool dead = false;
+        //Countdown
         int i = 3;
+        carrier.display.setTextSize(3);
         while (true) {
           while (i > 0) {
-            carrier.display.setTextSize(3);
-            carrier.display.setCursor(112, 35);
-            carrier.display.setTextColor(GREY);
-            carrier.display.print(i + 1);
             carrier.display.setCursor(112, 35);
             carrier.display.setTextColor(WHITE);
             carrier.display.print(i);
-            delay(1000);
             i--;
+            delay(1000);
+            carrier.display.setCursor(112, 35);
+            carrier.display.setTextColor(GREY);
+            carrier.display.print(i + 1);
           }
-          carrier.display.setCursor(112, 35);
-          carrier.display.setTextSize(3);
-          carrier.display.setTextColor(GREY);
-          carrier.display.print("1");
+          playMusic = false;
 
           carrier.display.drawPixel(snake.X, snake.Y, WHITE);
 
           tail[p].X = snake.X;
           tail[p].Y = snake.Y;
+
           for (int y = 0; y < 30; y++) {
             carrier.display.drawPixel(tail[y].X, tail[y].Y, WHITE);
           }
@@ -148,24 +156,166 @@ void loop() {
             p = 0;
           }
 
-          Serial.println(tail[p].X);
-          Serial.println(snake.X);
+
+          //Music
+          while (playMusic == true) {
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(587, 250);  //D5
+            carrier.Buzzer.beep(440, 250);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(587, 250);  //D5
+            carrier.Buzzer.beep(440, 375);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+            carrier.Buzzer.beep(247, 125);  //B3
+            carrier.Buzzer.beep(247, 125);  //B3
+            carrier.Buzzer.beep(587, 250);  //D5
+            carrier.Buzzer.beep(440, 375);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(587, 250);  //D5
+            carrier.Buzzer.beep(440, 375);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(587, 250);  //D5
+            carrier.Buzzer.beep(440, 375);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(261, 125);  //C4(middle)
+            carrier.Buzzer.beep(587, 250);  //D5
+            carrier.Buzzer.beep(440, 375);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+            carrier.Buzzer.beep(247, 125);  //B3
+            carrier.Buzzer.beep(247, 125);  //B3
+            carrier.Buzzer.beep(587, 250);  //D5
+            carrier.Buzzer.beep(440, 375);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(233, 62);   //Bb3
+            carrier.Buzzer.beep(588, 250);  //D5
+            carrier.Buzzer.beep(440, 375);  //A4
+            carrier.Buzzer.beep(415, 125);  //Ab4
+            carrier.Buzzer.beep(392, 250);  //G4
+            carrier.Buzzer.beep(349, 250);  //F4
+            carrier.Buzzer.beep(294, 125);  //D4
+            carrier.Buzzer.beep(349, 125);  //F4
+            carrier.Buzzer.beep(392, 125);  //G4
+          }
+
+
+          if (snake.Y > 120) {
+            if (top = true) {
+              carrier.display.setCursor(105, 200);
+              carrier.display.setTextColor(GREY);
+              carrier.display.print(scoreCounter);
+              top = false;
+            }
+            carrier.display.setCursor(105, 20);
+
+            carrier.display.setTextColor(GREY);
+
+            carrier.display.print(scoreCounter);
+            scoreCounter++;
+            carrier.display.setCursor(105, 20);
+            carrier.display.setTextColor(GREEN);
+            carrier.display.print(scoreCounter);
+            bot = true;
+          }
+          if (snake.Y <= 120) {
+            if (bot = true) {
+              carrier.display.setCursor(105, 20);
+              carrier.display.setTextColor(GREY);
+              carrier.display.print(scoreCounter);
+              bot = false;
+            }
+            carrier.display.setCursor(105, 200);
+            carrier.display.setTextColor(GREY);
+            carrier.display.print(scoreCounter);
+            scoreCounter++;
+            carrier.display.setCursor(105, 200);
+            carrier.display.setTextColor(GREEN);
+            carrier.display.print(scoreCounter);
+            top = true;
+          }
 
           if (carrier.IMUmodule.accelerationAvailable()) {
             carrier.IMUmodule.readAcceleration(x, y, z);
-            if (x > 0) {
-              snake.X++;
+
+            if (x >= 0.25 && turnTime <= 0) {
+              turnTime = 10;
+              angle += 90;
             }
-            if (x < 0) {
-              snake.X--;
+            if (x <= -0.25 && turnTime <= 0) {
+              turnTime = 10;
+              angle -= 90;
+            }
+            if (angle > 270) {
+              angle = 0;
+            }
+            if (angle < 0) {
+              angle = 270;
             }
 
-            if (y > 0) {
-              snake.Y--;
+            if (angle == 0) {
+              snake.X++;
             }
-            if (y < 0) {
+            if (angle == 90) {
               snake.Y++;
             }
+            if (angle == 180) {
+              snake.X--;
+            }
+            if (angle == 270) {
+              snake.Y--;
+            }
+            turnTime--;
             carrier.display.drawPixel(tail[p].X, tail[p].Y, GREY);
             for (int t = 0; t < 30; t++) {
               if (tail[t].X == snake.X && tail[t].Y == snake.Y) {
@@ -174,12 +324,30 @@ void loop() {
             }
 
             if (snake.X == 240 || snake.X == 0 || snake.Y == 240 || snake.Y == 0 || dead == true) {
+              playMusic = false;
               dead = true;
+              for (int y = 0; y < 30; y++) {
+                tail[y].X = 120;
+                tail[y].Y = 120;
+              }
               carrier.display.fillScreen(RED);
               carrier.display.setTextSize(3);
               carrier.display.setCursor(70, 35);
               carrier.display.setTextColor(BLACK);
               carrier.display.print("DEFEAT");
+
+              carrier.display.setTextSize(2);
+              carrier.display.setCursor(70, 90);
+              carrier.display.setTextColor(WHITE);
+              carrier.display.print("Score:");
+              carrier.display.print(scoreCounter);
+
+              carrier.display.setCursor(55, 120);
+              carrier.display.setTextColor(WHITE);
+              carrier.display.print("Highscore:");
+              //hent highscore fra database
+              carrier.display.print("x");
+
 
               carrier.display.setTextColor(WHITE);
               carrier.display.setCursor(40, 190);
@@ -190,10 +358,12 @@ void loop() {
               carrier.display.print("RETRY");
               snake.X = 120;
               snake.Y = 120;
+              scoreCounter = 0;
               break;
             }
           }
         }
+        //death menu
         while (dead) {
           carrier.Buttons.update();
 
