@@ -20,6 +20,7 @@ struct location {
   float X;
   float Y;
 };
+
 int p = 0;
 int scoreCounter = 0;
 int scoreX = 110;
@@ -42,7 +43,8 @@ void setup() {
 
 void loop() {
   location snake = { 120, 120 };
-  location tail[30];
+  location tail[56700];
+  location berry = { 100, 100 };
   dead = false;
   // Laver main screen
   carrier.display.setCursor(55, 110);
@@ -126,10 +128,10 @@ void loop() {
         carrier.display.setCursor(105, 210);
         carrier.display.setTextSize(1);
         carrier.display.print("START");
-        //Countdown
         int i = 3;
         carrier.display.setTextSize(3);
         while (true) {
+          //Countdown
           while (i > 0) {
             carrier.display.setCursor(112, 35);
             carrier.display.setTextColor(WHITE);
@@ -141,18 +143,18 @@ void loop() {
             carrier.display.print(i + 1);
           }
           playMusic = false;
-
+          //drawing of snake
           carrier.display.drawPixel(snake.X, snake.Y, WHITE);
 
           tail[p].X = snake.X;
           tail[p].Y = snake.Y;
 
-          for (int y = 0; y < 30; y++) {
+          for (int y = 0; y <= scoreCounter; y++) {
             carrier.display.drawPixel(tail[y].X, tail[y].Y, WHITE);
           }
           delay(20);
           p++;
-          if (p == 30) {
+          if (p >= scoreCounter) {
             p = 0;
           }
 
@@ -249,6 +251,15 @@ void loop() {
             carrier.Buzzer.beep(392, 125);  //G4
           }
 
+          carrier.display.drawPixel(berry.X, berry.Y, RED);
+
+          Serial.println(snake.X);
+          if (snake.X == berry.X && snake.Y == berry.Y || snake.X == berry.X - 1 && snake.Y == berry.Y - 1 || snake.X == berry.X - 1 && snake.Y == berry.Y || snake.X == berry.X - 1 && snake.Y == berry.Y + 1 || snake.X == berry.X && snake.Y == berry.Y - 1 || snake.X == berry.X && snake.Y == berry.Y + 1 || snake.X == berry.X + 1 && snake.Y == berry.Y - 1 || snake.X == berry.X + 1 && snake.Y == berry.Y || snake.X == berry.X + 1 && snake.Y == berry.Y + 1) {
+            carrier.display.drawPixel(berry.X, berry.Y, GREY);
+            berry.X = random(50, 150);
+            berry.Y = random(50, 150);
+            scoreCounter++;
+          }
 
           if (snake.Y > 120) {
             if (top = true) {
@@ -258,11 +269,10 @@ void loop() {
               top = false;
             }
             carrier.display.setCursor(105, 20);
-
             carrier.display.setTextColor(GREY);
 
-            carrier.display.print(scoreCounter);
-            scoreCounter++;
+            //carrier.display.print(scoreCounter);
+            //scoreCounter++;
             carrier.display.setCursor(105, 20);
             carrier.display.setTextColor(GREEN);
             carrier.display.print(scoreCounter);
@@ -278,7 +288,7 @@ void loop() {
             carrier.display.setCursor(105, 200);
             carrier.display.setTextColor(GREY);
             carrier.display.print(scoreCounter);
-            scoreCounter++;
+            //scoreCounter++;
             carrier.display.setCursor(105, 200);
             carrier.display.setTextColor(GREEN);
             carrier.display.print(scoreCounter);
@@ -317,7 +327,7 @@ void loop() {
             }
             turnTime--;
             carrier.display.drawPixel(tail[p].X, tail[p].Y, GREY);
-            for (int t = 0; t < 30; t++) {
+            for (int t = 0; t < scoreCounter; t++) {
               if (tail[t].X == snake.X && tail[t].Y == snake.Y) {
                 dead = true;
               }
@@ -326,7 +336,7 @@ void loop() {
             if (snake.X == 240 || snake.X == 0 || snake.Y == 240 || snake.Y == 0 || dead == true) {
               playMusic = false;
               dead = true;
-              for (int y = 0; y < 30; y++) {
+              for (int y = 0; y < scoreCounter; y++) {
                 tail[y].X = 120;
                 tail[y].Y = 120;
               }
