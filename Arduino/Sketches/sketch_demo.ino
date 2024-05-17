@@ -1,25 +1,25 @@
-// Importer vores MKRIoTCarrier
+// Importer vores MKRIoTCarrier.
 #include <Arduino_MKRIoTCarrier.h>
 MKRIoTCarrier carrier;
 
-#include <Arduino_LSM6DSOX.h>
-
-// Definere de farver vi bruger
+// Definerer de farver vi bruger.
 #define WHITE 0xFFFF
 #define RED 0xF800
 #define GREY 0x18E3
 #define BLACK 0x0000
 #define GREEN 0x0400
 
-bool top = false;
-bool bot = false;
-bool retry;
-float x, y, z;
+// Opretter en location structure.
 struct location {
   float X;
   float Y;
 };
 
+// Definerer de variabler vi bruger.
+bool top = false;
+bool bot = false;
+bool retry = false;
+float x, y, z;
 int p = 0;
 int scoreCounter = 0;
 int angle = 0;
@@ -28,23 +28,29 @@ bool dead = false;
 bool playMusic = false;
 int prevScore;
 
+// Sætter skærmen til farven grå og tekst farven til hvid.
 void setup() {
   Serial.begin(9600);
   carrier.noCase();
   carrier.begin();
-  // Sætter skærmen til farven grå og tekst farven til hvid
   carrier.display.fillScreen(GREY);
   carrier.display.setTextColor(WHITE);
+}
 
-  retry = false;
+// Arduinoen tror skærmen er 240x240 pixels, mens det er en cirkulær skærm. Derfor opretter vi en "falsk" cirkulær skærm.
+bool isInsideCircle(int x, int y, int centerX, int centerY, int radius) {
+  int dx = x - centerX;
+  int dy = y - centerY;
+  return (dx * dx + dy * dy <= radius * radius);
 }
 
 void loop() {
-  location snake = { 120, 120 };
-  location tail[1000];
-  location berry = { 100, 100 };
-  dead = false;
-  // Laver main screen
+  location snake = { 120, 120 };  // Sætter start koordinaterne til (120, 120) for slangen.
+  location tail[1000];            // Maksimum længde for slangen.
+  location berry = { 100, 100 };  // Sætter start koordinaterne til (100, 100) for bærret.
+  dead = false;                   // Sætter dead til false, da man er live til at starte med.
+
+  // Laver main screen.
   carrier.display.setCursor(55, 110);
   carrier.display.setTextSize(2);
   carrier.display.print("PICK A GAME");
@@ -54,20 +60,17 @@ void loop() {
   carrier.display.print("SNAKE");
 
   carrier.display.setCursor(195, 70);
-  carrier.display.setTextSize(1);
   carrier.display.print("PONG");
 
   carrier.display.setCursor(80, 210);
-  carrier.display.setTextSize(1);
   carrier.display.print("BRICK BREAKER");
 
-  // Gøre Arduinoen klar til at modtage inputs fra knapperne
+  // Gøre Arduinoen klar til at modtage inputs fra knapperne.
   carrier.Buttons.update();
 
-  // Hvis knap-4 trykkes, så bliver snake-startup screenen lavet
+  // Hvis knap-4 trykkes, så bliver snake-startup screenen lavet.
   if (carrier.Buttons.onTouchDown(TOUCH4)) {
     carrier.display.setTextColor(GREY);
-
     carrier.display.setCursor(55, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("PICK A GAME");
@@ -77,11 +80,9 @@ void loop() {
     carrier.display.print("SNAKE");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("PONG");
 
     carrier.display.setCursor(80, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("BRICK BREAKER");
 
     carrier.display.setTextColor(WHITE);
@@ -94,11 +95,9 @@ void loop() {
     carrier.display.print("BACK");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("SKINS");
 
     carrier.display.setCursor(105, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("START");
 
     delay(500);
@@ -120,13 +119,12 @@ void loop() {
         carrier.display.print("BACK");
 
         carrier.display.setCursor(195, 70);
-        carrier.display.setTextSize(1);
         carrier.display.print("SKINS");
 
         carrier.display.setCursor(105, 210);
-        carrier.display.setTextSize(1);
         carrier.display.print("START");
-        //Countdown
+
+        // Nedtælling til start.
         int i = 3;
         carrier.display.setTextSize(3);
         while (true) {
@@ -140,27 +138,36 @@ void loop() {
             carrier.display.setTextColor(GREY);
             carrier.display.print(i + 1);
           }
-          playMusic = false;
-          //drawing of snake
 
+          playMusic = false;  // Musik.
+
+          // Koordinater til vores "falske" skærm.
+          int centerX = 120;
+          int centerY = 120;
+          int radius = 120;
+
+          // Hvis slangen IKKE er indefor den "falske" skærm, så er den dø.
+          if (!isInsideCircle(snake.X, snake.Y, centerX, centerY, radius)) {
+            dead = true;
+          }
+
+          // Slangen tegnes.
           tail[p].X = snake.X;
           tail[p].Y = snake.Y;
 
           p++;
-          for (int y = 0; y <= scoreCounter*2 + 38; y++) {
+          for (int y = 0; y <= scoreCounter * 2 + 38; y++) {
             carrier.display.drawPixel(tail[y].X, tail[y].Y, WHITE);
           }
 
           carrier.display.drawPixel(snake.X, snake.Y, WHITE);
-          if (p > scoreCounter*2 + 40) {
+          if (p > scoreCounter * 2 + 40) {
             p = 0;
           }
           carrier.display.drawPixel(tail[p].X, tail[p].Y, GREY);
           delay(20);
 
-
-
-          //Music
+          // Hvis playMusic er true, afspil vores musik.
           while (playMusic == true) {
             carrier.Buzzer.beep(294, 125);  //D4
             carrier.Buzzer.beep(294, 125);  //D4
@@ -252,6 +259,7 @@ void loop() {
             carrier.Buzzer.beep(392, 125);  //G4
           }
 
+          // Bærret tegnes.
           carrier.display.drawPixel(berry.X - 1, berry.Y - 1, RED);
           carrier.display.drawPixel(berry.X - 1, berry.Y, RED);
           carrier.display.drawPixel(berry.X - 1, berry.Y + 1, RED);
@@ -262,8 +270,7 @@ void loop() {
           carrier.display.drawPixel(berry.X + 1, berry.Y, RED);
           carrier.display.drawPixel(berry.X + 1, berry.Y + 1, RED);
 
-
-
+          // Hvis slangen rammer et bær, tilføj point og fjern bær.
           if (snake.X == berry.X && snake.Y == berry.Y || snake.X == berry.X - 1 && snake.Y == berry.Y - 1 || snake.X == berry.X - 1 && snake.Y == berry.Y || snake.X == berry.X - 1 && snake.Y == berry.Y + 1 || snake.X == berry.X && snake.Y == berry.Y - 1 || snake.X == berry.X && snake.Y == berry.Y + 1 || snake.X == berry.X + 1 && snake.Y == berry.Y - 1 || snake.X == berry.X + 1 && snake.Y == berry.Y || snake.X == berry.X + 1 && snake.Y == berry.Y + 1) {
             carrier.display.drawPixel(berry.X - 1, berry.Y - 1, GREY);
             carrier.display.drawPixel(berry.X - 1, berry.Y, GREY);
@@ -280,6 +287,7 @@ void loop() {
             Serial.println(scoreCounter);
           }
 
+          // Hvis vores slange er på top-delen af skærmen, så vis scoren i bunden.
           if (snake.Y > 120) {
             if (top = true) {
               carrier.display.setCursor(112, 200);
@@ -298,6 +306,8 @@ void loop() {
             carrier.display.print(scoreCounter);
             bot = true;
           }
+
+          // Hvis vores slange er på bund-delen af skærmen, så vis scoren i toppen.
           if (snake.Y <= 120) {
             if (bot = true) {
               carrier.display.setCursor(112, 20);
@@ -316,6 +326,7 @@ void loop() {
             top = true;
           }
 
+          // Hvis carrierens acceleration er ledig, så bliver gyroskopet brugt.
           if (carrier.IMUmodule.accelerationAvailable()) {
             carrier.IMUmodule.readAcceleration(x, y, z);
 
@@ -347,13 +358,14 @@ void loop() {
               snake.Y--;
             }
             turnTime--;
-            for (int t = 0; t < scoreCounter*2 + 40; t++) {
+            for (int t = 0; t < scoreCounter * 2 + 40; t++) {
               if (tail[t].X == snake.X && tail[t].Y == snake.Y) {
                 dead = true;
               }
             }
 
-            if (snake.X == 240 || snake.X == 0 || snake.Y == 240 || snake.Y == 0 || dead == true) {
+            // Hvis dead er true, så lav defeat screen + nulstil slangen.
+            if (dead == true) {
               playMusic = false;
               dead = true;
               for (int y = 0; y < scoreCounter + 40; y++) {
@@ -393,7 +405,7 @@ void loop() {
             }
           }
         }
-        //death menu
+        // Defeat menu.
         while (dead) {
           carrier.Buttons.update();
 
@@ -419,7 +431,6 @@ void loop() {
       }
     }
     carrier.display.setTextColor(GREY);
-
     carrier.display.setCursor(90, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("SNAKE");
@@ -429,15 +440,12 @@ void loop() {
     carrier.display.print("BACK");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("SKINS");
 
     carrier.display.setCursor(105, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("START");
 
     carrier.display.setTextColor(WHITE);
-
     carrier.display.setCursor(55, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("PICK A GAME");
@@ -447,17 +455,14 @@ void loop() {
     carrier.display.print("SNAKE");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("PONG");
 
     carrier.display.setCursor(80, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("BRICK BREAKER");
   }
 
   if (carrier.Buttons.onTouchDown(TOUCH2)) {
     carrier.display.setTextColor(GREY);
-
     carrier.display.setCursor(55, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("PICK A GAME");
@@ -467,11 +472,9 @@ void loop() {
     carrier.display.print("SNAKE");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("PONG");
 
     carrier.display.setCursor(80, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("BRICK BREAKER");
 
     carrier.display.setTextColor(WHITE);
@@ -484,11 +487,9 @@ void loop() {
     carrier.display.print("BACK");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("SKINS");
 
     carrier.display.setCursor(105, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("START");
 
     delay(500);
@@ -499,7 +500,6 @@ void loop() {
       }
     }
     carrier.display.setTextColor(GREY);
-
     carrier.display.setCursor(45, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("BRICK BREAKER");
@@ -509,15 +509,12 @@ void loop() {
     carrier.display.print("BACK");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("SKINS");
 
     carrier.display.setCursor(105, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("START");
 
     carrier.display.setTextColor(WHITE);
-
     carrier.display.setCursor(55, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("PICK A GAME");
@@ -527,17 +524,14 @@ void loop() {
     carrier.display.print("SNAKE");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("PONG");
 
     carrier.display.setCursor(80, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("BRICK BREAKER");
   }
 
   if (carrier.Buttons.onTouchDown(TOUCH0)) {
     carrier.display.setTextColor(GREY);
-
     carrier.display.setCursor(55, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("PICK A GAME");
@@ -547,11 +541,9 @@ void loop() {
     carrier.display.print("SNAKE");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("PONG");
 
     carrier.display.setCursor(80, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("BRICK BREAKER");
 
     carrier.display.setTextColor(WHITE);
@@ -564,11 +556,9 @@ void loop() {
     carrier.display.print("BACK");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("SKINS");
 
     carrier.display.setCursor(105, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("START");
 
     delay(500);
@@ -579,7 +569,6 @@ void loop() {
       }
     }
     carrier.display.setTextColor(GREY);
-
     carrier.display.setCursor(95, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("PONG");
@@ -589,15 +578,12 @@ void loop() {
     carrier.display.print("BACK");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("SKINS");
 
     carrier.display.setCursor(105, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("START");
 
     carrier.display.setTextColor(WHITE);
-
     carrier.display.setCursor(55, 110);
     carrier.display.setTextSize(2);
     carrier.display.print("PICK A GAME");
@@ -607,11 +593,9 @@ void loop() {
     carrier.display.print("SNAKE");
 
     carrier.display.setCursor(195, 70);
-    carrier.display.setTextSize(1);
     carrier.display.print("PONG");
 
     carrier.display.setCursor(80, 210);
-    carrier.display.setTextSize(1);
     carrier.display.print("BRICK BREAKER");
   }
 }
