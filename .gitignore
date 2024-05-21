@@ -1,3 +1,4 @@
 node_modules
 .env
 target
+arduino_secrets.h

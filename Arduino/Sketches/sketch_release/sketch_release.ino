@@ -1,21 +1,34 @@
-// Importer vores MKRIoTCarrier.
+// Libraries.
+#include <WiFiNINA.h>
+#include "arduino_secrets.h"
 #include <Arduino_MKRIoTCarrier.h>
 MKRIoTCarrier carrier;
 
-// Definerer de farver vi bruger.
+// Network login.
+char ssid[] = SECRET_SSID;
+char pass[] = SECRET_PASS;
+int status = WL_IDLE_STATUS;
+
+// API server.
+char server[] = "h3-projektv2-24q2h3-gruppe3-txp.onrender.com";
+
+// Cookie [OBS: ALREADY SET COOKIE]
+String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImlhdCI6MTcxNjI3MzExNiwiZXhwIjoxNzE2NTMyMzE2fQ.cXmcCEUf6_3R0Hf5Ld3cvybsp1fbVVX2WA9NxVxAdnw";
+
+// Defining our colors.
 #define WHITE 0xFFFF
 #define RED 0xF800
 #define GREY 0x18E3
 #define BLACK 0x0000
 #define GREEN 0x0400
 
-// Opretter en location structure.
+// Creating location structure.
 struct location {
   float X;
   float Y;
 };
 
-// Definerer de variabler vi bruger.
+// Creating our variables.
 bool top = false;
 bool bot = false;
 bool retry = false;
@@ -27,17 +40,43 @@ int turnTime = 0;
 bool dead = false;
 bool playMusic = false;
 int prevScore;
+String body;
 
-// Sætter skærmen til farven grå og tekst farven til hvid.
+// WiFiSSLClient to connect to our API on render.com.
+WiFiSSLClient client;
+
+// Setting up main-menu-screen (Grey background, white text)
 void setup() {
   Serial.begin(9600);
   carrier.noCase();
   carrier.begin();
+  // Attempt to connect to WiFi network:
+  while (status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to network: ");
+    Serial.println(ssid);
+
+    carrier.display.fillScreen(BLACK);
+    carrier.display.setCursor(55, 80);
+    carrier.display.setTextColor(WHITE);
+    carrier.display.setTextSize(2);
+    carrier.display.print("Attempting to");
+    carrier.display.setCursor(55, 110);
+    carrier.display.print("connect to network: ");
+    carrier.display.setCursor(55, 140);
+    carrier.display.print(ssid);
+
+    // Connect to WPA/WPA2 network:
+    status = WiFi.begin(ssid, pass);
+
+    // Wait 10 seconds for connection:
+    delay(10000);
+  }
   carrier.display.fillScreen(GREY);
   carrier.display.setTextColor(WHITE);
 }
 
-// Arduinoen tror skærmen er 240x240 pixels, mens det er en cirkulær skærm. Derfor opretter vi en "falsk" cirkulær skærm.
+// The Arduino's screen is set to 240x240 pixels which creates a squared screen.
+// When in reality the screen is circular. Therefore, we need to create a circular "map".
 bool isInsideCircle(int x, int y, int centerX, int centerY, int radius) {
   int dx = x - centerX;
   int dy = y - centerY;
@@ -45,12 +84,12 @@ bool isInsideCircle(int x, int y, int centerX, int centerY, int radius) {
 }
 
 void loop() {
-  location snake = { 120, 120 };  // Sætter start koordinaterne til (120, 120) for slangen.
-  location tail[1000];            // Maksimum længde for slangen.
-  location berry = { 100, 100 };  // Sætter start koordinaterne til (100, 100) for bærret.
-  dead = false;                   // Sætter dead til false, da man er live til at starte med.
+  location snake = { 120, 120 };  // Start coordinates for our snake (120, 120).
+  location tail[1000];            // Max length of the snake.
+  location berry = { 100, 100 };  // Start coordinates for our berry (100, 100).
+  dead = false;                   // Sets snake-status to alive.
 
-  // Laver main screen.
+  // Creates main-menu-screen.
   carrier.display.setCursor(55, 110);
   carrier.display.setTextSize(2);
   carrier.display.print("PICK A GAME");
@@ -65,10 +104,10 @@ void loop() {
   carrier.display.setCursor(80, 210);
   carrier.display.print("BRICK BREAKER");
 
-  // Gøre Arduinoen klar til at modtage inputs fra knapperne.
+  // Tells our Arduino to get ready for inputs from our buttons.
   carrier.Buttons.update();
 
-  // Hvis knap-4 trykkes, så bliver snake-startup screenen lavet.
+  // If button-4 is pressed -> create snake-start-menu-screen.
   if (carrier.Buttons.onTouchDown(TOUCH4)) {
     carrier.display.setTextColor(GREY);
     carrier.display.setCursor(55, 110);
@@ -103,9 +142,11 @@ void loop() {
     delay(500);
     while (true) {
       carrier.Buttons.update();
+      // If button-4 is pressed AGAIN -> go back to main-menu-screen.
       if (carrier.Buttons.onTouchDown(TOUCH4)) {
         break;
       }
+      // If button-2 is pressed -> create snake-gameplay-screen.
       if (carrier.Buttons.onTouchDown(TOUCH2) || retry == true) {
         retry = false;
         carrier.display.setTextColor(GREY);
@@ -124,7 +165,7 @@ void loop() {
         carrier.display.setCursor(105, 210);
         carrier.display.print("START");
 
-        // Nedtælling til start.
+        // Countdown.
         int i = 3;
         carrier.display.setTextSize(3);
         while (true) {
@@ -139,19 +180,20 @@ void loop() {
             carrier.display.print(i + 1);
           }
 
-          playMusic = false;  // Musik.
+          // Start music after our countdown.
+          playMusic = false;
 
-          // Koordinater til vores "falske" skærm.
+          // Coordinates for our "fake" screen/map.
           int centerX = 120;
           int centerY = 120;
           int radius = 120;
 
-          // Hvis slangen IKKE er indefor den "falske" skærm, så er den dø.
+          // If the snake ISN'T inside of our "fake" screen/map -> dead.
           if (!isInsideCircle(snake.X, snake.Y, centerX, centerY, radius)) {
             dead = true;
           }
 
-          // Slangen tegnes.
+          // Draws snake.
           tail[p].X = snake.X;
           tail[p].Y = snake.Y;
 
@@ -167,99 +209,12 @@ void loop() {
           carrier.display.drawPixel(tail[p].X, tail[p].Y, GREY);
           delay(20);
 
-          // Hvis playMusic er true, afspil vores musik.
+          // If playMusic is true -> play music.
           while (playMusic == true) {
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(587, 250);  //D5
-            carrier.Buzzer.beep(440, 250);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(587, 250);  //D5
-            carrier.Buzzer.beep(440, 375);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
-            carrier.Buzzer.beep(247, 125);  //B3
-            carrier.Buzzer.beep(247, 125);  //B3
-            carrier.Buzzer.beep(587, 250);  //D5
-            carrier.Buzzer.beep(440, 375);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(587, 250);  //D5
-            carrier.Buzzer.beep(440, 375);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(587, 250);  //D5
-            carrier.Buzzer.beep(440, 375);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(261, 125);  //C4(middle)
-            carrier.Buzzer.beep(587, 250);  //D5
-            carrier.Buzzer.beep(440, 375);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
-            carrier.Buzzer.beep(247, 125);  //B3
-            carrier.Buzzer.beep(247, 125);  //B3
-            carrier.Buzzer.beep(587, 250);  //D5
-            carrier.Buzzer.beep(440, 375);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(233, 62);   //Bb3
-            carrier.Buzzer.beep(588, 250);  //D5
-            carrier.Buzzer.beep(440, 375);  //A4
-            carrier.Buzzer.beep(415, 125);  //Ab4
-            carrier.Buzzer.beep(392, 250);  //G4
-            carrier.Buzzer.beep(349, 250);  //F4
-            carrier.Buzzer.beep(294, 125);  //D4
-            carrier.Buzzer.beep(349, 125);  //F4
-            carrier.Buzzer.beep(392, 125);  //G4
+            music();
           }
 
-          // Bærret tegnes.
+          // Draws berry.
           carrier.display.drawPixel(berry.X - 1, berry.Y - 1, RED);
           carrier.display.drawPixel(berry.X - 1, berry.Y, RED);
           carrier.display.drawPixel(berry.X - 1, berry.Y + 1, RED);
@@ -270,7 +225,7 @@ void loop() {
           carrier.display.drawPixel(berry.X + 1, berry.Y, RED);
           carrier.display.drawPixel(berry.X + 1, berry.Y + 1, RED);
 
-          // Hvis slangen rammer et bær, tilføj point og fjern bær.
+          // If the snake hits a berry -> add point, remove the berry and spawn a new berry.
           if (snake.X == berry.X && snake.Y == berry.Y || snake.X == berry.X - 1 && snake.Y == berry.Y - 1 || snake.X == berry.X - 1 && snake.Y == berry.Y || snake.X == berry.X - 1 && snake.Y == berry.Y + 1 || snake.X == berry.X && snake.Y == berry.Y - 1 || snake.X == berry.X && snake.Y == berry.Y + 1 || snake.X == berry.X + 1 && snake.Y == berry.Y - 1 || snake.X == berry.X + 1 && snake.Y == berry.Y || snake.X == berry.X + 1 && snake.Y == berry.Y + 1) {
             carrier.display.drawPixel(berry.X - 1, berry.Y - 1, GREY);
             carrier.display.drawPixel(berry.X - 1, berry.Y, GREY);
@@ -287,7 +242,7 @@ void loop() {
             Serial.println(scoreCounter);
           }
 
-          // Hvis vores slange er på top-delen af skærmen, så vis scoren i bunden.
+          // If the snake is at the top of the screen -> show score at the bottom.
           if (snake.Y > 120) {
             if (top = true) {
               carrier.display.setCursor(112, 200);
@@ -307,7 +262,7 @@ void loop() {
             bot = true;
           }
 
-          // Hvis vores slange er på bund-delen af skærmen, så vis scoren i toppen.
+          // If the snake is at the bottom of the screen -> show score at the top.
           if (snake.Y <= 120) {
             if (bot = true) {
               carrier.display.setCursor(112, 20);
@@ -326,10 +281,11 @@ void loop() {
             top = true;
           }
 
-          // Hvis carrierens acceleration er ledig, så bliver gyroskopet brugt.
+          // If the accelerator is available -> use the gyroscope.
           if (carrier.IMUmodule.accelerationAvailable()) {
             carrier.IMUmodule.readAcceleration(x, y, z);
 
+            // Movement code. (Includes: Interval of gyroscope-X value, turntime and angle (stages of snake))
             if (x >= 0.25 && turnTime <= 0) {
               turnTime = 10;
               angle += 90;
@@ -364,7 +320,7 @@ void loop() {
               }
             }
 
-            // Hvis dead er true, så lav defeat screen + nulstil slangen.
+            // If dead is true -> create defeat-screen and reset snake (Coordinates + tail).
             if (dead == true) {
               playMusic = false;
               dead = true;
@@ -405,20 +361,18 @@ void loop() {
             }
           }
         }
-        // Defeat menu.
+        // Defeat-screen-menu.
         while (dead) {
           carrier.Buttons.update();
-
+          // If button-1 is pressed -> send user back to snake-gameplay-screen.
           if (carrier.Buttons.onTouchDown(TOUCH1)) {
             carrier.display.fillScreen(GREY);
             retry = true;
             dead = false;
-            while (dead = false) {
-              Serial.println("test");
-            }
             break;
           }
 
+          // If button-3 is pressed -> send user back to main-menu-screen.
           if (carrier.Buttons.onTouchDown(TOUCH3)) {
             carrier.display.fillScreen(GREY);
             break;
@@ -461,6 +415,7 @@ void loop() {
     carrier.display.print("BRICK BREAKER");
   }
 
+  // If button-2 is pressed -> create brick-breaker-start-menu-screen.
   if (carrier.Buttons.onTouchDown(TOUCH2)) {
     carrier.display.setTextColor(GREY);
     carrier.display.setCursor(55, 110);
@@ -495,6 +450,7 @@ void loop() {
     delay(500);
     while (true) {
       carrier.Buttons.update();
+      // If button-4 is pressed -> go back to main-menu-screen.
       if (carrier.Buttons.onTouchDown(TOUCH4)) {
         break;
       }
@@ -530,6 +486,7 @@ void loop() {
     carrier.display.print("BRICK BREAKER");
   }
 
+  // If button-0 is pressed -> create pong-start-menu-screen.
   if (carrier.Buttons.onTouchDown(TOUCH0)) {
     carrier.display.setTextColor(GREY);
     carrier.display.setCursor(55, 110);
@@ -564,6 +521,7 @@ void loop() {
     delay(500);
     while (true) {
       carrier.Buttons.update();
+      // If button-4 is pressed -> go back to main-menu-screen.
       if (carrier.Buttons.onTouchDown(TOUCH4)) {
         break;
       }
@@ -598,4 +556,95 @@ void loop() {
     carrier.display.setCursor(80, 210);
     carrier.display.print("BRICK BREAKER");
   }
+}
+
+void music() {
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(587, 250);  //D5
+  carrier.Buzzer.beep(440, 250);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(587, 250);  //D5
+  carrier.Buzzer.beep(440, 375);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
+  carrier.Buzzer.beep(247, 125);  //B3
+  carrier.Buzzer.beep(247, 125);  //B3
+  carrier.Buzzer.beep(587, 250);  //D5
+  carrier.Buzzer.beep(440, 375);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(587, 250);  //D5
+  carrier.Buzzer.beep(440, 375);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(587, 250);  //D5
+  carrier.Buzzer.beep(440, 375);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(261, 125);  //C4(middle)
+  carrier.Buzzer.beep(587, 250);  //D5
+  carrier.Buzzer.beep(440, 375);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
+  carrier.Buzzer.beep(247, 125);  //B3
+  carrier.Buzzer.beep(247, 125);  //B3
+  carrier.Buzzer.beep(587, 250);  //D5
+  carrier.Buzzer.beep(440, 375);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(233, 62);   //Bb3
+  carrier.Buzzer.beep(588, 250);  //D5
+  carrier.Buzzer.beep(440, 375);  //A4
+  carrier.Buzzer.beep(415, 125);  //Ab4
+  carrier.Buzzer.beep(392, 250);  //G4
+  carrier.Buzzer.beep(349, 250);  //F4
+  carrier.Buzzer.beep(294, 125);  //D4
+  carrier.Buzzer.beep(349, 125);  //F4
+  carrier.Buzzer.beep(392, 125);  //G4
 }
