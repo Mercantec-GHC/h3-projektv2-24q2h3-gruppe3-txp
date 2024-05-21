@@ -185,6 +185,7 @@ app.post("/saveScore", requireAuth, async (req, res) => {
 
                 const game = await prisma.game.create({ data: { mapId: map.id, skinId: skin.id, gameId: req.body.gameId } });
 
+                console.log(req.body);
                 await prisma.score.create({
                     data: { userId: user?.id, score: req.body.score, gameId: game.gameId, replayId: replay.id },
                 });
