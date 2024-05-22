@@ -157,3 +157,20 @@ gameId: int
 ```ts
 Messages: "List user game data sorted by highest score found by gameId";
 ```
+
+### /personalHighscore
+
+**Request**
+
+```ts
+Requires Cookie
+
+userId: int
+gameId: int
+```
+
+**Response**
+
+```ts
+Messages: "List highscore found by gameId and userId";
+```

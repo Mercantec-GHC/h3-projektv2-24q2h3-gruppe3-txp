@@ -205,5 +205,16 @@ app.get("/getHighscores", requireAuth, async (req, res) => {
     res.status(200).json(highscores);
 });
 
+// API ENDPOINT - /personalHighscore
+app.post("/personalHighscore", requireAuth, async (req, res) => {
+    // Searches for highscore from a user by requested gameId (1 = snake, 2 = brick breaker, 3 = pong)
+    const highscore = await prisma.score.findMany({
+        where: { AND: [{ gameId: req.body.gameId }, { userId: req.body.userId }] },
+        distinct: ["userId"],
+        orderBy: { score: "desc" },
+    });
+    res.status(200).json(highscore[0].score);
+});
+
 // Starts app/backend on localhost:4321
 app.listen(process.env.PORT || 4321, () => console.log("REST API server ready at: http://localhost:4321"));
