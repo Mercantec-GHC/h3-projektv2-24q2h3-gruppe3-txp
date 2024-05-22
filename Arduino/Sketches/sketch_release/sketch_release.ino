@@ -13,7 +13,7 @@ int status = WL_IDLE_STATUS;
 char server[] = "h3-projektv2-24q2h3-gruppe3-txp.onrender.com";
 
 // Cookie [OBS: ALREADY SET COOKIE]
-String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImlhdCI6MTcxNjI3MzExNiwiZXhwIjoxNzE2NTMyMzE2fQ.cXmcCEUf6_3R0Hf5Ld3cvybsp1fbVVX2WA9NxVxAdnw";
+String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDAsImlhdCI6MTcxNjM2Mjk4NCwiZXhwIjoxNzE2NjIyMTg0fQ.Fuj1sFWHD9rU9x6RipY23ElGaFoDrHpfzQMhuXcmPL8";
 
 // Defining our colors.
 #define WHITE 0xFFFF
@@ -41,11 +41,14 @@ bool dead = false;
 bool playMusic = false;
 int prevScore;
 String body;
+int snakeGameId = 1;
+int pongGameId = 2;
+int brickBreakerGameId = 3;
 
 // WiFiSSLClient to connect to our API on render.com.
 WiFiSSLClient client;
 
-// Setting up main-menu-screen (Grey background, white text)
+// Connecting to WiFi and setting up main-menu-screen (Grey background, white text)
 void setup() {
   Serial.begin(9600);
   carrier.noCase();
@@ -56,14 +59,12 @@ void setup() {
     Serial.println(ssid);
 
     carrier.display.fillScreen(BLACK);
-    carrier.display.setCursor(55, 80);
     carrier.display.setTextColor(WHITE);
     carrier.display.setTextSize(2);
-    carrier.display.print("Attempting to");
-    carrier.display.setCursor(55, 110);
-    carrier.display.print("connect to network: ");
-    carrier.display.setCursor(55, 140);
-    carrier.display.print(ssid);
+    carrier.display.setCursor(45, 80);
+    carrier.display.print("Connecting to");
+    carrier.display.setCursor(75, 110);
+    carrier.display.print("WIFI...");
 
     // Connect to WPA/WPA2 network:
     status = WiFi.begin(ssid, pass);
@@ -71,6 +72,15 @@ void setup() {
     // Wait 10 seconds for connection:
     delay(10000);
   }
+  carrier.display.setTextColor(GREEN);
+  carrier.display.setTextSize(1);
+  carrier.display.setCursor(55, 140);
+  carrier.display.print("Connected to:");
+  carrier.display.print(ssid);
+  carrier.display.print("!");
+
+  delay(5000);
+
   carrier.display.fillScreen(GREY);
   carrier.display.setTextColor(WHITE);
 }
@@ -322,6 +332,14 @@ void loop() {
 
             // If dead is true -> create defeat-screen and reset snake (Coordinates + tail).
             if (dead == true) {
+              if (client.connect(server, 443)) {
+                String body =
+                  "{\n  \"score\":" + String(scoreCounter) + ", \n  \"gameId\":" + String(snakeGameId) + " \n}";
+
+                saveScore(body);
+              } else {
+                Serial.println("no internet, unlucky bro");
+              }
               playMusic = false;
               dead = true;
               for (int y = 0; y < scoreCounter + 40; y++) {
@@ -556,6 +574,18 @@ void loop() {
     carrier.display.setCursor(80, 210);
     carrier.display.print("BRICK BREAKER");
   }
+}
+
+// POST score endpoint:
+String saveScore(String body) {
+  Serial.println("Trying to send POST request...");
+  client.println("POST /saveScore HTTP/1.1");
+  client.println("Host: h3-projektv2-24q2h3-gruppe3-txp.onrender.com");
+  client.println("Content-Type: application/json");
+  client.println("Cookie: JWT=" + cookie);
+  client.println("Content-Length: " + String(body.length()));
+  client.println();  // end HTTP request header
+  client.println(body);
 }
 
 void music() {
