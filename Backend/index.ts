@@ -201,7 +201,9 @@ app.get("/getHighscores", requireAuth, async (req, res) => {
         where: { gameId: req.body.gameId },
         distinct: ["userId"],
         orderBy: { score: "desc" },
+        include: { userRelation: { select: { username: true } } },
     });
+
     res.status(200).json(highscores);
 });
 
