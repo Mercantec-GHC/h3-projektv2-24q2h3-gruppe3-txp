@@ -1,7 +1,8 @@
-// Libraries.
+// Libraries and secrets.
 #include <WiFiNINA.h>
-#include "arduino_secrets.h"
 #include <Arduino_MKRIoTCarrier.h>
+#include <CustomJWT.h>
+#include "arduino_secrets.h"
 MKRIoTCarrier carrier;
 
 // Network login.
@@ -13,7 +14,10 @@ int status = WL_IDLE_STATUS;
 char server[] = "h3-projektv2-24q2h3-gruppe3-txp.onrender.com";
 
 // Cookie [OBS: ALREADY SET COOKIE]
-String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDAsImlhdCI6MTcxNjM2Mjk4NCwiZXhwIjoxNzE2NjIyMTg0fQ.Fuj1sFWHD9rU9x6RipY23ElGaFoDrHpfzQMhuXcmPL8";
+String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MTM1NjIyLCJleHAiOjE3MTczOTQ4MjJ9.HADK8HHRCMYDjuvVjM97DHW_r-fiO9ee-4xFcwGWbW8";
+char string[] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MTM1NjIyLCJleHAiOjE3MTczOTQ4MjJ9.HADK8HHRCMYDjuvVjM97DHW_r-fiO9ee-4xFcwGWbW8";
+char jwtSecret[] = SECRET_JWT_SECRET;
+CustomJWT jwt(jwtSecret, 256);
 
 // Defining our colors.
 #define WHITE 0xFFFF
@@ -44,6 +48,7 @@ String body;
 int snakeGameId = 1;
 int pongGameId = 2;
 int brickBreakerGameId = 3;
+bool connectedStatus = false;
 
 // WiFiSSLClient to connect to our API on render.com.
 WiFiSSLClient client;
@@ -53,6 +58,7 @@ void setup() {
   Serial.begin(9600);
   carrier.noCase();
   carrier.begin();
+
   // Attempt to connect to WiFi network:
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to network: ");
@@ -72,6 +78,7 @@ void setup() {
     // Wait 10 seconds for connection:
     delay(10000);
   }
+  connectedStatus = true;
   carrier.display.setTextColor(GREEN);
   carrier.display.setTextSize(1);
   carrier.display.setCursor(55, 140);
@@ -332,14 +339,37 @@ void loop() {
 
             // If dead is true -> create defeat-screen and reset snake (Coordinates + tail).
             if (dead == true) {
-              if (client.connect(server, 443)) {
-                String body =
-                  "{\n  \"score\":" + String(scoreCounter) + ", \n  \"gameId\":" + String(snakeGameId) + " \n}";
 
-                saveScore(body);
-              } else {
-                Serial.println("no internet, unlucky bro");
+              // DECODE JWT
+              jwt.allocateJWTMemory();
+
+              jwt.decodeJWT(string);
+              String res = jwt.payload;
+
+              jwt.clear();
+              Serial.println(res);
+              int userId = 1;
+
+              Serial.println(connectedStatus);
+              while (connectedStatus) {
+                if (client.connect(server, 443)) {
+                  saveScore(scoreCounter, snakeGameId);
+                  delay(2500);
+                  personalHighscore(userId, 1);
+                }
+                connectedStatus = false;
+                break;
               }
+
+              while (!connectedStatus) {
+                delay(2500);
+                while (client.available()) {
+                  String c = client.readString();
+                  Serial.println(c);
+                }
+                break;
+              }
+
               playMusic = false;
               dead = true;
               for (int y = 0; y < scoreCounter + 40; y++) {
@@ -361,6 +391,30 @@ void loop() {
               carrier.display.setCursor(55, 120);
               carrier.display.setTextColor(WHITE);
               carrier.display.print("Highscore:");
+
+
+              /* if (client.connect(server, 443)) {
+
+                // DECODE JWT
+                jwt.allocateJWTMemory();
+
+                jwt.decodeJWT(string);
+                String res = jwt.payload;
+
+                jwt.clear();
+
+                Serial.println(res);
+                int userId = 40;
+                personalHighscore(userId, snakeGameId);
+
+                while (client.available()) {
+                  char c = client.read();
+                  Serial.print(c);
+                }
+              } else {
+                Serial.println("no internet, unlucky bro");
+              } */
+
               //hent highscore fra database
               carrier.display.print("x");
 
@@ -577,8 +631,11 @@ void loop() {
 }
 
 // POST score endpoint:
-String saveScore(String body) {
-  Serial.println("Trying to send POST request...");
+String saveScore(int score, int gameId) {
+  String body =
+    "{\n  \"score\": " + String(score) + ", \n  \"gameId\": " + String(gameId) + " \n}";
+  Serial.println(body);
+  Serial.println("Trying to send POST request to /saveScore...");
   client.println("POST /saveScore HTTP/1.1");
   client.println("Host: h3-projektv2-24q2h3-gruppe3-txp.onrender.com");
   client.println("Content-Type: application/json");
@@ -586,6 +643,26 @@ String saveScore(String body) {
   client.println("Content-Length: " + String(body.length()));
   client.println();  // end HTTP request header
   client.println(body);
+  client.println();
+  Serial.println("POST request sent!");
+}
+
+// POST personalHighscore endpoint:
+String personalHighscore(int userId, int gameId) {
+  if (client.connect(server, 443)) {
+    String body = "{\n  \"userId\": " + String(userId) + ", \n  \"gameId\": " + String(gameId) + " \n}";
+    Serial.println("Trying to send POST request...");
+    client.println("POST /personalHighscore HTTP/1.1");
+    client.println("Host: h3-projektv2-24q2h3-gruppe3-txp.onrender.com");
+    client.println("Content-Type: application/json");
+    client.println("Cookie: JWT=" + cookie);
+    client.println("Content-Length: " + String(body.length()));
+    client.println();  // end HTTP request header
+    Serial.println(body);
+    client.println(body);
+    client.println();
+    Serial.println("POST request sent!");
+  }
 }
 
 void music() {
