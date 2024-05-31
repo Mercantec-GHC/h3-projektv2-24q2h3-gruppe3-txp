@@ -8,14 +8,12 @@ export struct User {
 }
 
 export component SignUpPage inherits Page {
-    height: 100%;
-    width: 100%;
     in-out property <bool> usercreated;
     BackToDashBoard { }
 
     VerticalBox {
-        width: 600px;
-        height: 400px;
+        width: root.width;
+        height: root.height/3;
         usernamefield := LineEdit {
             height: parent.height / 3;
             placeholder-text: "username";
@@ -42,7 +40,7 @@ export component SignUpPage inherits Page {
             }
         }
         accountbtn := Button {
-            height: parent.height / 10;
+            height: parent.height / 2;
             text: "Create account";
             clicked => {
                 properties.currentuser.username = usernamefield.text;

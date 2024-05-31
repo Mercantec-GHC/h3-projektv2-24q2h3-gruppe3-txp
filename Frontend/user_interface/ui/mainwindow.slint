@@ -6,12 +6,18 @@ import { Button } from "std-widgets.slint";
 import { leaderboard } from "leaderboards.slint";
 import { Profile } from "profile.slint";
 
+export global logic {
+    in-out property <string> token <=> properties.token;
+    in-out property <bool> loading <=> properties.loading;
+}
 
 export component AppWindow inherits Window {
-    min-width: 480px;
     min-height: 480px;
+    min-width: 480px;
     callback login <=> callbacks.request-login;
     callback createacc <=> callbacks.request-create-user;
+    callback gethighscoresperuser <=> callbacks.get-user-scores;
+    callback gethighscores <=> callbacks.get-scores;
     //possibly make it states based rather than if statements
    main := HorizontalLayout {
         alignment: stretch;
@@ -43,10 +49,17 @@ export component AppWindow inherits Window {
         height: 100%;
         background: palette.background;
         padding: 0;
-        sidebarbutton := Button {
-            x: properties.sidebaractive ? sidebar.width - 35px : sidebar.width;
+        sidebarbutton := TouchArea {
+            x: properties.sidebaractive ? sidebar.width - 20px : sidebar.width - 10px;
             y: 0px;
-            icon: properties.sidebaractive ? @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-left.svg") : @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-right.svg");
+            width: 30px;
+            Image {
+                source: properties.sidebaractive ? @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-left.svg") : @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-right.svg");
+                height: 20px;
+                width: 20px;
+                colorize: white;
+            }
+
             clicked => {
                 properties.sidebaractive = ! properties.sidebaractive;
             }
@@ -96,6 +109,7 @@ export component AppWindow inherits Window {
                     pageination.activepage = 3;
                     properties.sidebartest = true;
                     properties.sidebaractive = true;
+                    callbacks.get-scores(1, properties.token);
                 }
             }
         }

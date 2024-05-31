@@ -4,9 +4,10 @@ struct ButtonColors {
     pressed: color,
     hovered: color,
 }
-struct User {
+export struct User {
     name: string,
     score: int,
+    identifier: int,
 } 
 
 export global palette {
@@ -55,7 +56,7 @@ export component BackToDashBoard {
     }
 }
 
-export global User {
+export global UserId {
     in-out property <string> Username;
     in-out property <int> Identifier;
 }
@@ -63,11 +64,6 @@ export global User {
 export struct Credentials {
     username: string,
     password: string,
-}
-
-export global callbacks {
-    callback request-login(Credentials);
-    callback request-create-user(Credentials);
 }
 
 export global properties {
@@ -82,9 +78,18 @@ export global properties {
         { name:"Phami", score:0 },
         { name: "Druumihra", score:9999999 }
     ];
-    in-out property <bool> logged-in: true;
+    in-out property <bool> logged-in: false;
     in-out property <string> instanceId;
     in-out property <string> date: "00:00:0000";
     in-out property <string> time: "00:00";
     out property <[string]> games: ["Snake", "Brick Breaker", "Pong", "side-scroller"];
+    in-out property <string> token;
+    in-out property <bool> loading: false;
+}
+
+export global callbacks {
+    callback request-login(Credentials) -> string;
+    callback request-create-user(Credentials);
+    callback get-user-scores(User) -> User;
+    callback get-scores(int, string) -> [User];
 }

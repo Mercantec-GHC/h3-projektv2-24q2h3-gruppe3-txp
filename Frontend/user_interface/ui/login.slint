@@ -8,30 +8,30 @@ export component LoginPage inherits Page {
     height: 100%;
     width: 100%;
     BackToDashBoard { }
-    
+
     VerticalBox {
-        width: 600px;
-        height: 400px;
+        width: root.width;
+        height: parent.height;
         usernamefield := LineEdit {
-            height: parent.height / 3;
+            height: root.height / 3;
             placeholder-text: "username";
             text: "";
         }
 
         passwordfield := LineEdit {
-            height: parent.height / 3;
+            height: root.height / 3;
             placeholder-text: "password";
             input-type: password;
             text: "";
         }
 
         loginbutton := Button {
-            height: parent.height / 10;
+            height: root.height / 10;
             text: "Login";
             clicked => {
                 properties.currentuser.username = usernamefield.text;
                 properties.currentuser.password = passwordfield.text;
-                callbacks.request-login(properties.currentuser);
+                properties.token = callbacks.request-login(properties.currentuser);
             }
         }
 
