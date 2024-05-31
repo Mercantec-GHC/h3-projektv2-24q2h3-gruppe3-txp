@@ -37,7 +37,7 @@ struct Username {
 }
 
 struct Test {
-    username: String,
+    username: Username,
     score: i64,
 }
 
@@ -155,19 +155,37 @@ fn main() -> Result<(), slint::PlatformError> {
                     .await
                     .unwrap();
 
-                // let test: Vec<Test>;
-                // let i = 0;
-                // for score in res {
-                //     test[i].username = score.user_relation.username;
-                //     test[i].score = score.score;
-                //     i = i + 1;
-                // }
-                // let res: ModelRc<User> = test.into();
-                return res;
+                let mut i = 0;
+                let mut test: Vec<Test>;
+                res.len();
+                for score in res {
+                    test[i].username = score.user_relation;
+                    test[i].score = score.score;
+                    i = i + 1;
+                    return test;
+
+                };
+                let result =vec_test(res);
+                return result;
             });
+            
             let test2 = Default::default();
             return test2;
         }
     });
     ui.run()
+}
+
+
+fn vec_test (api_output: Vec<Score>) -> Vec<Test>{
+    let mut output: Vec<Test>;
+    
+    for score in output.iter_mut() {
+        output.push(api_output)
+            }
+
+
+
+    return output
+    
 }
