@@ -1,7 +1,7 @@
 use dotenv;
 use reqwest::{Client, Error, Response};
 use serde::{Deserialize, Serialize};
-use slint::{Global, ModelRc, SharedString};
+use slint::{Global, Model, ModelRc, SharedString};
 use std::{collections::HashMap, env};
 
 slint::include_modules!();
@@ -21,13 +21,13 @@ struct LoginResponse {
 #[derive(Serialize, Deserialize, Debug)]
 struct Score {
     #[serde(rename = "gameId")]
-    game_id: i64,
-    id: i64,
+    game_id: i32,
+    id: i32,
     #[serde(rename = "replayId")]
-    replay_id: i64,
-    score: i64,
+    replay_id: i32,
+    score: i32,
     #[serde(rename = "userId")]
-    user_id: i64,
+    user_id: i32,
     #[serde(rename = "userRelation")]
     user_relation: Username,
 }
@@ -36,9 +36,10 @@ struct Username {
     username: String,
 }
 
-struct Test {
+struct HighScoreData {
+    id: i32,
     username: Username,
-    score: i64,
+    score: i32,
 }
 
 const API_CON: &str = "https://h3-projektv2-24q2h3-gruppe3-txp.onrender.com/";
@@ -155,21 +156,22 @@ fn main() -> Result<(), slint::PlatformError> {
                     .await
                     .unwrap();
 
-                let mut i = 0;
-                let mut test: Vec<Test>;
-                res.len();
-                for score in res {
-                    test[i].username = score.user_relation;
-                    test[i].score = score.score;
-                    i = i + 1;
-                    return test;
+                // let mut i = 0;
+                // let mut test: Vec<HighScoreData>;
+                // res.len();
+                // for score in res {
+                //     test[i].username = score.user_relation;
+                //     test[i].score = score.score;
+                //     i = i + 1;
+                //     return test;
 
-                };
+                // };
+
                 let result =vec_test(res);
                 return result;
-            });
+            }).unwrap();
             
-            let test2 = Default::default();
+            let test2: ModelRc<User> = ModelRc::<User>::from(res);
             return test2;
         }
     });
@@ -177,15 +179,13 @@ fn main() -> Result<(), slint::PlatformError> {
 }
 
 
-fn vec_test (api_output: Vec<Score>) -> Vec<Test>{
-    let mut output: Vec<Test>;
-    
-    for score in output.iter_mut() {
-        output.push(api_output)
-            }
+fn vec_test (api_output: Vec<Score>) -> Vec<HighScoreData>{
+    let mut output: Vec<HighScoreData> = Vec::new();
 
-
-
+    for score in api_output {
+        let temp_val: HighScoreData = HighScoreData{ username: score.user_relation, score: score.score, id: score.id};
+        output.push(temp_val);
+        }
     return output
     
 }
