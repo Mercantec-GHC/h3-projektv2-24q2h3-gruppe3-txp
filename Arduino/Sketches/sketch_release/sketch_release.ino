@@ -2,6 +2,7 @@
 #include <WiFiNINA.h>
 #include <Arduino_MKRIoTCarrier.h>
 #include <CustomJWT.h>
+#include <ArduinoJson.h>
 #include "arduino_secrets.h"
 MKRIoTCarrier carrier;
 
@@ -14,8 +15,8 @@ int status = WL_IDLE_STATUS;
 char server[] = "h3-projektv2-24q2h3-gruppe3-txp.onrender.com";
 
 // Cookie [OBS: ALREADY SET COOKIE]
-String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MTM1NjIyLCJleHAiOjE3MTczOTQ4MjJ9.HADK8HHRCMYDjuvVjM97DHW_r-fiO9ee-4xFcwGWbW8";
-char string[] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MTM1NjIyLCJleHAiOjE3MTczOTQ4MjJ9.HADK8HHRCMYDjuvVjM97DHW_r-fiO9ee-4xFcwGWbW8";
+String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MzIzNzU1LCJleHAiOjE3MTc1ODI5NTV9.k8eF0RHw7FalDcie6Fs9NKYPQ67UgnTQIwWzYyUUUW4";
+char string[] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MzIzNzU1LCJleHAiOjE3MTc1ODI5NTV9.k8eF0RHw7FalDcie6Fs9NKYPQ67UgnTQIwWzYyUUUW4";
 char jwtSecret[] = SECRET_JWT_SECRET;
 CustomJWT jwt(jwtSecret, 256);
 
@@ -347,27 +348,28 @@ void loop() {
               String res = jwt.payload;
 
               jwt.clear();
-              Serial.println(res);
-              int userId = 1;
 
-              Serial.println(connectedStatus);
-              while (connectedStatus) {
-                if (client.connect(server, 443)) {
-                  saveScore(scoreCounter, snakeGameId);
-                  delay(2500);
-                  personalHighscore(userId, 1);
-                }
-                connectedStatus = false;
-                break;
+              StaticJsonDocument<200> doc;
+
+              // Parse the JSON response
+              DeserializationError error = deserializeJson(doc, res);
+
+              // Test if parsing succeeds
+              if (error) {
+                Serial.print(F("deserializeJson() failed: "));
+                Serial.println(error.f_str());
+                return;
               }
+              int id = doc["id"];
 
-              while (!connectedStatus) {
+              int userId = id;
+              String personalHighscoreRes = "";
+
+              if (client.connect(server, 443)) {
+                saveScore(scoreCounter, snakeGameId);
                 delay(2500);
-                while (client.available()) {
-                  String c = client.readString();
-                  Serial.println(c);
-                }
-                break;
+                personalHighscore(userId, snakeGameId);
+                personalHighscoreRes = readResponse();
               }
 
               playMusic = false;
@@ -391,32 +393,8 @@ void loop() {
               carrier.display.setCursor(55, 120);
               carrier.display.setTextColor(WHITE);
               carrier.display.print("Highscore:");
-
-
-              /* if (client.connect(server, 443)) {
-
-                // DECODE JWT
-                jwt.allocateJWTMemory();
-
-                jwt.decodeJWT(string);
-                String res = jwt.payload;
-
-                jwt.clear();
-
-                Serial.println(res);
-                int userId = 40;
-                personalHighscore(userId, snakeGameId);
-
-                while (client.available()) {
-                  char c = client.read();
-                  Serial.print(c);
-                }
-              } else {
-                Serial.println("no internet, unlucky bro");
-              } */
-
               //hent highscore fra database
-              carrier.display.print("x");
+              carrier.display.print(personalHighscoreRes);
 
               delay(2500);
               carrier.display.setTextColor(WHITE);
@@ -651,7 +629,7 @@ String saveScore(int score, int gameId) {
 String personalHighscore(int userId, int gameId) {
   if (client.connect(server, 443)) {
     String body = "{\n  \"userId\": " + String(userId) + ", \n  \"gameId\": " + String(gameId) + " \n}";
-    Serial.println("Trying to send POST request...");
+    Serial.println("Trying to send POST request to /personalHighscore...");
     client.println("POST /personalHighscore HTTP/1.1");
     client.println("Host: h3-projektv2-24q2h3-gruppe3-txp.onrender.com");
     client.println("Content-Type: application/json");
@@ -663,6 +641,34 @@ String personalHighscore(int userId, int gameId) {
     client.println();
     Serial.println("POST request sent!");
   }
+}
+
+String readResponse() {
+  bool headersEnded = false;
+  String responseBody = "";
+
+  while (client.connected()) {
+    if (client.available()) {
+      String line = client.readStringUntil('\n');
+      if (line == "\r") {
+        headersEnded = true;
+      }
+      if (headersEnded) {
+        responseBody += line + "\n";
+      }
+    }
+  }
+  return extractValue(responseBody);
+}
+
+String extractValue(String response) {
+  int secondIndex = response.indexOf('\n', response.indexOf('\n') + 1);  // Find the index of the second newline character
+
+  // Extract the substring following the second newline character
+  String valueStr = response.substring(secondIndex + 1);
+  valueStr.trim();
+  valueStr.remove(valueStr.length() - 1);
+  return valueStr;
 }
 
 void music() {
