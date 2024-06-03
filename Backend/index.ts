@@ -13,6 +13,8 @@ const prisma = new PrismaClient();
 const app = express();
 app.use(express.json());
 
+const port = process.env.PORT || 4321;
+
 // Creating our JWT token
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id: any) => {
@@ -219,4 +221,4 @@ app.post("/personalHighscore", requireAuth, async (req, res) => {
 });
 
 // Starts app/backend on localhost:4321
-app.listen(process.env.PORT || 4321, () => console.log("REST API server ready at: http://localhost:4321"));
+app.listen(port, () => console.log(`REST API server ready at: http://localhost:${port}`));
