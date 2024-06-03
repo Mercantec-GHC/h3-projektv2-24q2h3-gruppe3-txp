@@ -217,6 +217,7 @@ app.post("/personalHighscore", requireAuth, async (req, res) => {
         distinct: ["userId"],
         orderBy: { score: "desc" },
     });
+    console.log(highscore);
     res.status(200).json(highscore[0].score);
 });
 
