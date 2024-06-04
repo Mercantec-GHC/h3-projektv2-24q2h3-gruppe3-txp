@@ -1,8 +1,8 @@
 use dotenv;
 use reqwest::{Client, Error, Response};
 use serde::{Deserialize, Serialize};
-use slint::{Global, Model, ModelRc, SharedString};
-use std::{collections::HashMap, env};
+use slint::{ModelRc, SharedString, VecModel};
+use std::{collections::HashMap, env, rc::Rc};
 
 slint::include_modules!();
 
@@ -36,17 +36,11 @@ struct Username {
     username: String,
 }
 
-struct HighScoreData {
-    id: i32,
-    username: Username,
-    score: i32,
-}
-
 const API_CON: &str = "https://h3-projektv2-24q2h3-gruppe3-txp.onrender.com/";
 fn main() -> Result<(), slint::PlatformError> {
-    let ui = AppWindow::new()?;
-    let _ = dotenv::dotenv().is_ok();
+    let ui = AppWindow::new().unwrap();
     let ui_weak = ui.as_weak();
+    let _ = dotenv::dotenv().is_ok();
     ui.on_login({
         move |data: Credentials| {
             println!("entered login handler");
@@ -66,16 +60,16 @@ fn main() -> Result<(), slint::PlatformError> {
 
                     let response: Result<Response, Error> =
                         client.post(con_string).json(&map).send().await;
-                    let binding = response.unwrap();
+                    let data: Response = match response {
+                        Ok(data) => data,
+                        Err(error) => panic!("panicked {}", error),
+                    };
+                    let binding = data;
                     let mut test = binding.cookies();
                     let fest = test.next().unwrap();
                     let frick: SharedString = fest.value().into();
                     frick
                 });
-                // let test = res.clone();
-                // ui_weak.upgrade_in_event_loop(move |ui: slint::Weak<AppWindow>| ui.unwrap().global::<logic>().set_token(test));
-                // println!("{res:#?}");
-                // return res;
 
                 sender.send(res).unwrap();
                 println!("send message")
@@ -128,9 +122,11 @@ fn main() -> Result<(), slint::PlatformError> {
     });
     ui.on_gethighscores({
         move |data: i32, token: SharedString| {
-            // let jwt: &str = &ui.get_token();
             let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
-            let res = slint::spawn_local(async move {
+            let handle =ui_weak.unwrap();
+            let _ = slint::spawn_local(async move {
+
+                // let handle = AppWindow::new().unwrap();
                 let res: Vec<Score> = tokio_runtime
                     .spawn(async move {
                         let mut map: HashMap<&str, i32> = HashMap::new();
@@ -149,43 +145,37 @@ fn main() -> Result<(), slint::PlatformError> {
                             .await
                             .expect("failed at json conversion");
                         print!("{response:#?}");
-                        //Needs to sanitise and format data before proceeding
-                        //Only require username and score
                         return response;
                     })
                     .await
                     .unwrap();
-
-                // let mut i = 0;
-                // let mut test: Vec<HighScoreData>;
-                // res.len();
-                // for score in res {
-                //     test[i].username = score.user_relation;
-                //     test[i].score = score.score;
-                //     i = i + 1;
-                //     return test;
-
-                // };
-
-                let result =vec_test(res);
+                let result: Rc<VecModel<User>> = Rc::new(vec_test(res));
+                handle
+                    .global::<logic>()
+                    .set_value(ModelRc::<User>::new(result.clone()));
+                println!("{:#?}", ModelRc::<User>::new(result.clone()));
+                println!("{:#?}", handle.global::<logic>().get_value());
                 return result;
-            }).unwrap();
-            
-            let test2: ModelRc<User> = ModelRc::<User>::from(res);
+            })
+            .unwrap();
+
+            let test2: ModelRc<User> = Default::default();
             return test2;
         }
     });
     ui.run()
 }
 
-
-fn vec_test (api_output: Vec<Score>) -> Vec<HighScoreData>{
-    let mut output: Vec<HighScoreData> = Vec::new();
+fn vec_test(api_output: Vec<Score>) -> VecModel<User> {
+    let output: VecModel<User> = Vec::new().into();
 
     for score in api_output {
-        let temp_val: HighScoreData = HighScoreData{ username: score.user_relation, score: score.score, id: score.id};
+        let temp_val: User = User {
+            name: score.user_relation.username.into(),
+            score: score.score,
+            identifier: score.id,
+        };
         output.push(temp_val);
-        }
-    return output
-    
+    }
+    return output;
 }

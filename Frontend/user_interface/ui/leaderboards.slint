@@ -1,10 +1,11 @@
-import {palette, Page, properties} from "common.slint";
+import {palette, Page, properties,callbacks, User} from "common.slint";
 //import "C:\Users\teisb\AppData\Local\Microsoft\Windows\Fonts/RandyGGRegular.ttf";
 
 component LeaderboardSlot inherits Rectangle {
+in-out property <[User]> data <=> properties.user;
     VerticalLayout {
         spacing: 20px;
-        for user in properties.user: Rectangle {
+        for user in root.data: Rectangle {
             background: @linear-gradient(45deg, blue 0%, palette.main 50%, palette.background 100%);
             height: parent.height / 10;
             width: parent.width;
@@ -16,7 +17,7 @@ component LeaderboardSlot inherits Rectangle {
                 x: parent.width * 0.05;
                 font-size: parent.height / 3;
                 color: #ffffff;
-                text: @tr("{}", user.name);
+                text: user.name;
                 vertical-alignment: center;
                 horizontal-alignment: center;
             }
@@ -26,7 +27,7 @@ component LeaderboardSlot inherits Rectangle {
                 font-family: "RandyGG";
                 font-size: parent.height / 3;
                 color: #ffffff;
-                text: @tr("score: {}", user.score);
+                text: user.score;
                 vertical-alignment: center;
                 horizontal-alignment: center;
             }

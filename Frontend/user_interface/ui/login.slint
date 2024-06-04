@@ -32,6 +32,9 @@ export component LoginPage inherits Page {
                 properties.currentuser.username = usernamefield.text;
                 properties.currentuser.password = passwordfield.text;
                 properties.token = callbacks.request-login(properties.currentuser);
+                if (properties.token != "") {
+                    properties.logged-in = true;
+                }
             }
         }
 

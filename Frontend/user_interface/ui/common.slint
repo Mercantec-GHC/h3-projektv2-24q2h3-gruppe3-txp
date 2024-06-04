@@ -91,5 +91,5 @@ export global callbacks {
     callback request-login(Credentials) -> string;
     callback request-create-user(Credentials);
     callback get-user-scores(User) -> User;
-    callback get-scores(int, string) -> [User];
+    pure callback get-scores(int, string) -> [User];
 }
