@@ -15,8 +15,8 @@ int status = WL_IDLE_STATUS;
 char server[] = "h3-projektv2-24q2h3-gruppe3-txp.onrender.com";
 
 // Cookie [OBS: ALREADY SET COOKIE]
-String cookie = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MzIzNzU1LCJleHAiOjE3MTc1ODI5NTV9.k8eF0RHw7FalDcie6Fs9NKYPQ67UgnTQIwWzYyUUUW4";
-char string[] = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzE3MzIzNzU1LCJleHAiOjE3MTc1ODI5NTV9.k8eF0RHw7FalDcie6Fs9NKYPQ67UgnTQIwWzYyUUUW4";
+String cookie = "";
+
 char jwtSecret[] = SECRET_JWT_SECRET;
 CustomJWT jwt(jwtSecret, 256);
 
@@ -43,13 +43,13 @@ int scoreCounter = 0;
 int angle = 0;
 int turnTime = 0;
 bool dead = false;
-bool playMusic = false;
 int prevScore;
 String body;
 int snakeGameId = 1;
 int pongGameId = 2;
 int brickBreakerGameId = 3;
 bool connectedStatus = false;
+bool cookieDecrypted = false;
 
 // WiFiSSLClient to connect to our API on render.com.
 WiFiSSLClient client;
@@ -87,7 +87,19 @@ void setup() {
   carrier.display.print(ssid);
   carrier.display.print("!");
 
+  String arduinoName = "Arduino#2";
+  String token = "";
+  sendArduinoName(arduinoName, token);
   delay(5000);
+  while (cookie == "") {
+    while (client.connected()) {
+      if (client.available()) {
+        String line = client.readString();
+        Serial.print(line);
+      }
+    }
+  }
+
 
   carrier.display.fillScreen(GREY);
   carrier.display.setTextColor(WHITE);
@@ -103,7 +115,7 @@ bool isInsideCircle(int x, int y, int centerX, int centerY, int radius) {
 
 void loop() {
   location snake = { 120, 120 };  // Start coordinates for our snake (120, 120).
-  location tail[1000];            // Max length of the snake.
+  location tail[200];             // Max length of the snake.
   location berry = { 100, 100 };  // Start coordinates for our berry (100, 100).
   dead = false;                   // Sets snake-status to alive.
 
@@ -198,8 +210,7 @@ void loop() {
             carrier.display.print(i + 1);
           }
 
-          // Start music after our countdown.
-          playMusic = false;
+          char string[] = "";
 
           // Coordinates for our "fake" screen/map.
           int centerX = 120;
@@ -227,11 +238,6 @@ void loop() {
           carrier.display.drawPixel(tail[p].X, tail[p].Y, GREY);
           delay(20);
 
-          // If playMusic is true -> play music.
-          while (playMusic == true) {
-            music();
-          }
-
           // Draws berry.
           carrier.display.drawPixel(berry.X - 1, berry.Y - 1, RED);
           carrier.display.drawPixel(berry.X - 1, berry.Y, RED);
@@ -257,6 +263,7 @@ void loop() {
             berry.X = random(50, 150);
             berry.Y = random(50, 150);
             scoreCounter++;
+            soundEffect();
             Serial.println(scoreCounter);
           }
 
@@ -340,6 +347,8 @@ void loop() {
 
             // If dead is true -> create defeat-screen and reset snake (Coordinates + tail).
             if (dead == true) {
+              // Parse the JSON response
+              StaticJsonDocument<200> doc;
 
               // DECODE JWT
               jwt.allocateJWTMemory();
@@ -348,21 +357,16 @@ void loop() {
               String res = jwt.payload;
 
               jwt.clear();
-
-              StaticJsonDocument<200> doc;
-
-              // Parse the JSON response
-              DeserializationError error = deserializeJson(doc, res);
-
               // Test if parsing succeeds
+              DeserializationError error = deserializeJson(doc, res);
               if (error) {
                 Serial.print(F("deserializeJson() failed: "));
                 Serial.println(error.f_str());
                 return;
               }
               int id = doc["id"];
-
               int userId = id;
+
               String personalHighscoreRes = "";
 
               if (client.connect(server, 443)) {
@@ -372,7 +376,6 @@ void loop() {
                 personalHighscoreRes = readResponse();
               }
 
-              playMusic = false;
               dead = true;
               for (int y = 0; y < scoreCounter + 40; y++) {
                 tail[y].X = 120;
@@ -643,6 +646,35 @@ String personalHighscore(int userId, int gameId) {
   }
 }
 
+// POST sendArduinoName endpoint:
+String sendArduinoName(String name, String token) {
+  if (client.connect(server, 443)) {
+    String body =
+      "{\n  \"arduinoDevice\": " + name + ", \n  \"Account\": " + token + " \n}";
+    Serial.println(body);
+    Serial.println("Trying to send POST request to /sendArduinoName...");
+    client.println("POST /sendArduinoName HTTP/1.1");
+    client.println("Host: h3-projektv2-24q2h3-gruppe3-txp.onrender.com");
+    client.println("Content-Type: application/json");
+    client.println("Content-Length: " + String(body.length()));
+    client.println();  // end HTTP request header
+    client.println(body);
+    client.println();
+    Serial.println("POST request sent!");
+  }
+}
+
+String getDevice(String name) {
+  if (client.connect(server, 443)) {
+    Serial.println("Trying to send POST request to /sendArduinoName...");
+    client.println("POST /sendArduinoName:" + String(name) + "HTTP/1.1");
+    client.println("Host: h3-projektv2-24q2h3-gruppe3-txp.onrender.com");
+    client.println("Content-Type: application/json");
+    client.println();
+    Serial.println("POST request sent!");
+  }
+}
+
 String readResponse() {
   bool headersEnded = false;
   String responseBody = "";
@@ -650,14 +682,20 @@ String readResponse() {
   while (client.connected()) {
     if (client.available()) {
       String line = client.readStringUntil('\n');
+      Serial.print(line);
       if (line == "\r") {
         headersEnded = true;
       }
       if (headersEnded) {
+        Serial.println("headersEndend: ");
+        Serial.print(responseBody);
         responseBody += line + "\n";
+        Serial.println("headersEndend2: ");
+        Serial.print(responseBody);
       }
     }
   }
+  Serial.print(responseBody);
   return extractValue(responseBody);
 }
 
@@ -671,93 +709,8 @@ String extractValue(String response) {
   return valueStr;
 }
 
-void music() {
-  carrier.Buzzer.beep(294, 125);  //D4
+void soundEffect() {
   carrier.Buzzer.beep(294, 125);  //D4
   carrier.Buzzer.beep(587, 250);  //D5
   carrier.Buzzer.beep(440, 250);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(587, 250);  //D5
-  carrier.Buzzer.beep(440, 375);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
-  carrier.Buzzer.beep(247, 125);  //B3
-  carrier.Buzzer.beep(247, 125);  //B3
-  carrier.Buzzer.beep(587, 250);  //D5
-  carrier.Buzzer.beep(440, 375);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(587, 250);  //D5
-  carrier.Buzzer.beep(440, 375);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(587, 250);  //D5
-  carrier.Buzzer.beep(440, 375);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(261, 125);  //C4(middle)
-  carrier.Buzzer.beep(587, 250);  //D5
-  carrier.Buzzer.beep(440, 375);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
-  carrier.Buzzer.beep(247, 125);  //B3
-  carrier.Buzzer.beep(247, 125);  //B3
-  carrier.Buzzer.beep(587, 250);  //D5
-  carrier.Buzzer.beep(440, 375);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(233, 62);   //Bb3
-  carrier.Buzzer.beep(588, 250);  //D5
-  carrier.Buzzer.beep(440, 375);  //A4
-  carrier.Buzzer.beep(415, 125);  //Ab4
-  carrier.Buzzer.beep(392, 250);  //G4
-  carrier.Buzzer.beep(349, 250);  //F4
-  carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(349, 125);  //F4
-  carrier.Buzzer.beep(392, 125);  //G4
 }
