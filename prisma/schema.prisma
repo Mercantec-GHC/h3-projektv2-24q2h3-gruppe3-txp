@@ -52,7 +52,8 @@ model Game {
   skinRelation Skin @relation(fields: [skinId], references: [id])
   skinId       Int
 
-  Score Score[]
+  Score      Score[]
+  sessionsId Int?
 }
 
 model Replay {
@@ -75,4 +76,11 @@ model Skin {
   skin_path String
 
   Game Game[]
+}
+
+model Sessions {
+  id Int @id @default(autoincrement())
+
+  ArduinoDevice String  @unique
+  Account       String?
 }

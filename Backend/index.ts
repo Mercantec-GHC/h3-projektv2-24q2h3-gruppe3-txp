@@ -217,8 +217,28 @@ app.post("/personalHighscore", requireAuth, async (req, res) => {
         distinct: ["userId"],
         orderBy: { score: "desc" },
     });
-    console.log(highscore);
     res.status(200).json(highscore[0].score);
+});
+
+// API ENDPOINT - /sendArduinoName
+app.post("/sendArduinoName", async (req, res) => {
+    const arduino = await prisma.sessions.create({ data: { ArduinoDevice: req.body.ArduinoDevice, Account: req.body.Token } });
+    res.status(200).json(arduino);
+});
+
+app.get("/getDevices", async (req, res) => {
+    const devices = await prisma.sessions.findMany();
+    res.status(200).json(devices);
+});
+
+app.get("/getDevice/:ArduinoDevice", async (req, res) => {
+    const device = await prisma.sessions.findFirst({ where: { ArduinoDevice: req.params.ArduinoDevice } });
+    res.status(200).json(device);
+});
+
+app.post("/updateDevice/:ArduinoDevice", async (req, res) => {
+    const device = await prisma.sessions.update({ where: { ArduinoDevice: req.params.ArduinoDevice }, data: { Account: req.body.Token } });
+    res.status(200).json({ message: "Device connected!" });
 });
 
 // Starts app/backend on localhost:4321
