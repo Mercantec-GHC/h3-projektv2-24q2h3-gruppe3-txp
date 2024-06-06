@@ -222,6 +222,10 @@ app.post("/personalHighscore", requireAuth, async (req, res) => {
 
 // API ENDPOINT - /sendArduinoName
 app.post("/sendArduinoName", async (req, res) => {
+    if (!req.body.ArduinoDevice) {
+        return res.status(406).json("Please send device name!");
+    }
+
     const arduino = await prisma.sessions.create({ data: { ArduinoDevice: req.body.ArduinoDevice, Account: req.body.Token } });
     res.status(200).json(arduino);
 });
