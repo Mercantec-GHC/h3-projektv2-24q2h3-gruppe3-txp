@@ -86,6 +86,10 @@ app.post("/login", async (req, res) => {
         return res.status(406).json("Please fill out all required fields.");
     }
 
+    if (!req.body.arduinoDevice) {
+        return res.status(406).json("Please send device name!");
+    }
+
     // Checks if user with with the input-username exists
     const user = await prisma.user.findFirst({ where: { username: req.body.username } });
     if (!user) {
@@ -101,6 +105,7 @@ app.post("/login", async (req, res) => {
     const findId = await prisma.user.findFirst({ where: { username: req.body.username } });
     const token = createToken(findId?.id);
 
+    await prisma.sessions.update({ where: { ArduinoDevice: req.body.arduinoDevice }, data: { Account: token } });
     // Sends message "Success" and JWT cookie when user is logged in
     res.cookie("JWT", token, { maxAge: maxAge * 1000, secure: true, httpOnly: true });
     res.status(200).json("Success");
@@ -244,20 +249,6 @@ app.get("/getDevice/:ArduinoDevice", async (req, res) => {
 
     const device = await prisma.sessions.findFirst({ where: { ArduinoDevice: req.params.ArduinoDevice } });
     res.status(200).json(device);
-});
-
-// API ENDPOINT - /updateDevice/:ArduinoDevice
-app.post("/updateDevice/:ArduinoDevice", async (req, res) => {
-    if (!req.params.ArduinoDevice) {
-        return res.status(406).json("Please send device name!");
-    }
-
-    if (!req.body.Token) {
-        return res.status(406).json("Please send token!");
-    }
-
-    await prisma.sessions.update({ where: { ArduinoDevice: req.params.ArduinoDevice }, data: { Account: req.body.Token } });
-    res.status(200).json("Device connected!");
 });
 
 // Starts app/backend on localhost:4321
