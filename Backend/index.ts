@@ -226,19 +226,34 @@ app.post("/sendArduinoName", async (req, res) => {
     res.status(200).json(arduino);
 });
 
+// API ENDPOINT - /getDevices
 app.get("/getDevices", async (req, res) => {
     const devices = await prisma.sessions.findMany();
     res.status(200).json(devices);
 });
 
+// API ENDPOINT - /getDevice/:ArduinoDevice
 app.get("/getDevice/:ArduinoDevice", async (req, res) => {
+    if (!req.params.ArduinoDevice) {
+        return res.status(406).json("Please send device name!");
+    }
+
     const device = await prisma.sessions.findFirst({ where: { ArduinoDevice: req.params.ArduinoDevice } });
     res.status(200).json(device);
 });
 
+// API ENDPOINT - /updateDevice/:ArduinoDevice
 app.post("/updateDevice/:ArduinoDevice", async (req, res) => {
-    const device = await prisma.sessions.update({ where: { ArduinoDevice: req.params.ArduinoDevice }, data: { Account: req.body.Token } });
-    res.status(200).json({ message: "Device connected!" });
+    if (!req.params.ArduinoDevice) {
+        return res.status(406).json("Please send device name!");
+    }
+
+    if (!req.body.Token) {
+        return res.status(406).json("Please send token!");
+    }
+
+    await prisma.sessions.update({ where: { ArduinoDevice: req.params.ArduinoDevice }, data: { Account: req.body.Token } });
+    res.status(200).json("Device connected!");
 });
 
 // Starts app/backend on localhost:4321
