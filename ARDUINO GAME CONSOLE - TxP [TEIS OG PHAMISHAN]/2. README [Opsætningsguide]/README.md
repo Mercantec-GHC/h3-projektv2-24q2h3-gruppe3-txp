@@ -1,6 +1,18 @@
 # Opsætningsguide
 
+---
+
 #### Dashboard:
+
+###### LISTE AF HARDWARE:
+
+-   Computer.
+
+---
+
+Dobbelt-klik på "Dashboard.exe". Nu starter dashboardet op.
+
+---
 
 #### Arduino:
 
@@ -15,8 +27,8 @@
 
 Inden du åbner "sketch_release.ino" op, så er det vigtigt at du har "Arduino IDE" installeret. Sørg for at det er installeret inden du fortsætter.
 
-Når IDE'en er installeret, så skal du igennem denne stil for at finde frem til filen: "Arduino/Sketches/sketch_release/" når du er kommet frem, så kan du åbne "sketch_release.ino".
-Nu burde du have to filer åbnet op (som vist på billedet herunder):
+Når IDE'en er installeret, så kan du åbne "sketch_release.ino".
+Nu burde du have to filer åbnet op (fil nr. 2 åbner automatisk op) (som vist på billedet herunder):
 ![eksempel1](image.png)
 
 Nu skal du til at konfigurere din netværks indstillinger, så Arduinoen kan få internet.
