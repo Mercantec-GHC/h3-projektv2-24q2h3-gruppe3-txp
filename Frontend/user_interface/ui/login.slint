@@ -10,9 +10,8 @@ export component LoginPage inherits Page {
         callbacks.get-devices()
     }
 
-
     Text {
-        x: 10px;
+        x: parent.width/2;
         y: 10px;
         z: 20;
         text: properties.error;
@@ -57,16 +56,11 @@ export component LoginPage inherits Page {
             clicked => {
                 properties.currentuser.username = usernamefield.text;
                 properties.currentuser.password = passwordfield.text;
-                callbacks.request-login(properties.currentuser, devicebox.current-value);
-                if properties.token != "" {
-                    pageination.activepage = 0;
-                    properties.sidebaractive = true;
-                    properties.sidebartest = true;
-                };
-                
+                callbacks.request-login(properties.currentuser, devicebox.current-value)
             }   
         }
 
+        
         accountbtn := Button {
             text: "Create new account";
             clicked => {

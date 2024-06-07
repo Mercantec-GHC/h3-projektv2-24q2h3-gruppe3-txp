@@ -2,67 +2,80 @@ import {palette, pageination, callbacks, properties, Credentials} from "./common
 import { Page } from "common.slint";
 
 export component Profile {
-    width: 1000px;
-    height: 800px;
+    min-width: 500px;
+    min-height: 500px;
+    Rectangle {
+    background: palette.background;
     userlabel := Rectangle {
         width: 95%;
         height: 10%;
-        background: red;
+        background: palette.background-darker;
         x: parent.width * 0.025;
         y: 10px;
-        border-color: blue;
         border-width: 2px;
         Text {
-            x: parent.width/3;
-            y: parent.height/3;
-            font-size: 20px;
-            text: @tr("{}test", properties.currentuser.username);
+            x: parent.width/2;
+            y: parent.height/8;
+            font-size: parent.height/2;
+            color: palette.main;
+            
+            text: @tr("{}", properties.currentuser.username);
         }
-
-        //need to get current date
         Text {
-            x: parent.width * 0.90;
-            y: parent.height / 3;
-            text: @tr("{}", properties.date);
-        }
-
-        Text {
-            x: parent.width * 0.90;
-            y: parent.height * 2 / 3;
+            color: palette.main;
+            x: parent.width * 0.840;
+            y: parent.height / 8;
             text: @tr("{}",properties.time);
+            font-size: parent.height/3;
+
+        }
+        Text {
+            x: parent.width * 0.80;
+            y: parent.height * 2 / 4;
+            color: palette.main;
+            font-size: parent.height/3;
+            text: @tr("{}", properties.date);
         }
     }
 
     topscores := Rectangle {
-        background: red;
+        background: palette.background-darker;
         height: 40%;
         width: 40%;
         x: parent.width * 0.025;
         y: parent.height / 7;
         for game in properties.games: Rectangle {
             Text {
-                //   text: @tr("{}", game.score);
-                text: @tr("test" );
+                color: palette.text;
+                font-size: parent.width/10;
+                text: @tr("{}", properties.userscore );
             }
         }
     }
 
     gamescores := Rectangle {
-        background: red;
+        background: palette.background-darker;
         height: 80%;
-        width: parent.width/3;
+        width: parent.width/2.7;
         x: parent.width * 0.6;
-        y: parent.height / 7;
+        y: parent.height / 8;
         VerticalLayout {
+            y: -23px;
             for game in properties.games: Rectangle {
                 test :=Text {
+                    font-size: parent.width/15;
                     text: @tr("{}:", game);
+                    color: palette.main;
                 }
                 Text {
-                    y: test.y + 15px;
+                    color: palette.text;
+                    font-size: test.font-size/1.2;
+                    y: test.y + 40px;
                     text: @tr("{}", "test");
                 }
             }
         }
+ 
+    }
     }
 }

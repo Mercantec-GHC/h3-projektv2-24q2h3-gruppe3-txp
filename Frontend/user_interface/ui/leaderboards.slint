@@ -1,5 +1,5 @@
 import {palette, Page, properties,callbacks, User} from "common.slint";
-import "C:\Users\teisb\AppData\Local\Microsoft\Windows\Fonts/RandyGGRegular.ttf";
+// import "C:\Users\teisb\AppData\Local\Microsoft\Windows\Fonts/RandyGGRegular.ttf";
 
 component LeaderboardSlot inherits Rectangle {
 in-out property <[User]> data <=> properties.user;
@@ -39,52 +39,62 @@ export component leaderboard {
     min-height: 400px;
     padding-left: 5px;
     Rectangle {
-        x: parent.width * 0;
-        states [
-            solo when parent.width <= 500px: {
-                width: parent.width;
+        background: palette.background-darker;
+        Rectangle {
+            x: parent.width * 0;
+            states [
+                solo when parent.width <= 500px: {
+                    width: parent.width;
+                }
+                duo when parent.width >= 500px && parent.width <= 900px: {
+                    width: parent.width / 2;
+                }
+                trio when parent.width >= 900px: {
+                    width: parent.width / 3;
+                }
+            ]
+            Text {
+                y: 0px;
+                color: palette.text;
+                font-size: root.width/20;
+                text: "Snake";
             }
-            duo when parent.width >= 500px && parent.width <= 900px: {
-                width: parent.width / 2;
+            
+            LeaderboardSlot {
+                y: parent.height / 6;
             }
-            trio when parent.width >= 900px: {
-                width: parent.width / 3;
+        }
+        
+        if root.width >= 500px:Rectangle {
+            x: root.width >= 900px ? parent.width / 3 : parent.width / 2;
+            width: root.width >= 900px ? parent.width / 3 : parent.width / 2;
+            Text {
+                y: 5px;
+                color: palette.text;
+                text: "Pong";
+                font-size: root.width/20;
+
             }
-        ]
-        Text {
-            y: 5px;
-            Rectangle { }
-
-            text: "Snake";
+            
+            LeaderboardSlot {
+                y: parent.height / 6;
+            }
         }
+        if root.width >= 900px: Rectangle {
+            x: parent.width / 3 * 2;
+            width: parent.width / 3;
+            Text {
+                color: palette.text;
+                y: 5px;
+                font-size: root.width/20;
 
-        LeaderboardSlot {
-            y: parent.height / 20;
-        }
-    }
-
-    if root.width >= 500px:Rectangle {
-        x: root.width >= 900px ? parent.width / 3 : parent.width / 2;
-        width: root.width >= 900px ? parent.width / 3 : parent.width / 2;
-        Text {
-            y: 5px;
-            text: "Pong";
-        }
-
-        LeaderboardSlot {
-            y: parent.height / 20;
-        }
-    }
-    if root.width >= 900px: Rectangle {
-        x: parent.width / 3 * 2;
-        width: parent.width / 3;
-        Text {
-            y: 5px;
-            text: "Brick Breaker";
-        }
-
-        LeaderboardSlot {
-            y: parent.height / 20;
+                text: "Brick Breaker";
+            }
+            
+            LeaderboardSlot {
+                y: parent.height / 6;
+            }
         }
     }
 }
+    
