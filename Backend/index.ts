@@ -231,6 +231,10 @@ app.post("/sendArduinoName", async (req, res) => {
         return res.status(406).json("Please send device name!");
     }
 
+    if (await prisma.sessions.findFirst({ where: { ArduinoDevice: req.body.arduinoDevice } })) {
+        return res.status(400).json("Arduino device name already exists.");
+    }
+
     const arduino = await prisma.sessions.create({ data: { ArduinoDevice: req.body.arduinoDevice, Account: req.body.Token } });
     res.status(200).json(arduino);
 });
