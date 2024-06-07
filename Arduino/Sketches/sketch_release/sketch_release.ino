@@ -46,10 +46,7 @@ bool dead = false;
 int prevScore;
 String body;
 int snakeGameId = 1;
-int pongGameId = 2;
-int brickBreakerGameId = 3;
-bool connectedStatus = false;
-bool cookieDecrypted = false;
+bool cookieFound = false;
 
 // WiFiSSLClient to connect to our API on render.com.
 WiFiSSLClient client;
@@ -79,7 +76,6 @@ void setup() {
     // Wait 10 seconds for connection:
     delay(10000);
   }
-  connectedStatus = true;
   carrier.display.setTextColor(GREEN);
   carrier.display.setTextSize(1);
   carrier.display.setCursor(55, 140);
@@ -87,19 +83,39 @@ void setup() {
   carrier.display.print(ssid);
   carrier.display.print("!");
 
-  String arduinoName = "Arduino#2";
-  String token = "";
-  sendArduinoName(arduinoName, token);
-  delay(5000);
-  while (cookie == "") {
-    while (client.connected()) {
-      if (client.available()) {
-        String line = client.readString();
-        Serial.print(line);
+  String res = "";
+  if (client.connect(server, 443)) {
+    while (cookieFound == false) {
+      Serial.println("Attempting to get token...");
+      carrier.display.fillScreen(BLACK);
+      carrier.display.setTextColor(WHITE);
+      carrier.display.setTextSize(2);
+      carrier.display.setCursor(45, 80);
+      carrier.display.print("Checking for");
+      carrier.display.setCursor(75, 110);
+      carrier.display.print("user...");
+
+      getDevice();
+      String extractResponse = client.readString();
+      String extractedJWT = extractJWT(extractResponse);
+      Serial.println(extractedJWT);
+
+      if (extractedJWT == "") {
+        Serial.println("NULL");
+      } else {
+        cookieFound = true;
+        cookie = extractedJWT;
+        break;
       }
+      delay(10000);
     }
   }
+  carrier.display.setTextColor(GREEN);
+  carrier.display.setTextSize(1);
+  carrier.display.setCursor(55, 140);
+  carrier.display.print("Connected to user!");
 
+  delay(5000);
 
   carrier.display.fillScreen(GREY);
   carrier.display.setTextColor(WHITE);
@@ -114,6 +130,7 @@ bool isInsideCircle(int x, int y, int centerX, int centerY, int radius) {
 }
 
 void loop() {
+
   location snake = { 120, 120 };  // Start coordinates for our snake (120, 120).
   location tail[200];             // Max length of the snake.
   location berry = { 100, 100 };  // Start coordinates for our berry (100, 100).
@@ -210,7 +227,11 @@ void loop() {
             carrier.display.print(i + 1);
           }
 
-          char string[] = "";
+          char string[cookie.length() + 1];
+          cookie.toCharArray(string, cookie.length() + 1);  // Convert String to char array
+          //Serial.println(string);  // Print the string
+
+          //char string[] = String(cookie);
 
           // Coordinates for our "fake" screen/map.
           int centerX = 120;
@@ -374,6 +395,7 @@ void loop() {
                 delay(2500);
                 personalHighscore(userId, snakeGameId);
                 personalHighscoreRes = readResponse();
+                personalHighscoreRes = extractValue(personalHighscoreRes);
               }
 
               dead = true;
@@ -639,7 +661,6 @@ String personalHighscore(int userId, int gameId) {
     client.println("Cookie: JWT=" + cookie);
     client.println("Content-Length: " + String(body.length()));
     client.println();  // end HTTP request header
-    Serial.println(body);
     client.println(body);
     client.println();
     Serial.println("POST request sent!");
@@ -649,8 +670,7 @@ String personalHighscore(int userId, int gameId) {
 // POST sendArduinoName endpoint:
 String sendArduinoName(String name, String token) {
   if (client.connect(server, 443)) {
-    String body =
-      "{\n  \"arduinoDevice\": " + name + ", \n  \"Account\": " + token + " \n}";
+    String body = "{\n  \"arduinoDevice\": \"" + name + "\", \n  \"Account\": \"" + token + "\" \n}";
     Serial.println(body);
     Serial.println("Trying to send POST request to /sendArduinoName...");
     client.println("POST /sendArduinoName HTTP/1.1");
@@ -664,14 +684,13 @@ String sendArduinoName(String name, String token) {
   }
 }
 
-String getDevice(String name) {
+void getDevice() {
   if (client.connect(server, 443)) {
-    Serial.println("Trying to send POST request to /sendArduinoName...");
-    client.println("POST /sendArduinoName:" + String(name) + "HTTP/1.1");
+    Serial.println("Trying to send GET request to /getDevice/:arduinoDevice...");
+    client.println("GET /getDevice/Arduino2 HTTP/1.1");
     client.println("Host: h3-projektv2-24q2h3-gruppe3-txp.onrender.com");
-    client.println("Content-Type: application/json");
     client.println();
-    Serial.println("POST request sent!");
+    Serial.println("GET request sent!");
   }
 }
 
@@ -682,21 +701,16 @@ String readResponse() {
   while (client.connected()) {
     if (client.available()) {
       String line = client.readStringUntil('\n');
-      Serial.print(line);
+      //Serial.print(line);
       if (line == "\r") {
         headersEnded = true;
       }
       if (headersEnded) {
-        Serial.println("headersEndend: ");
-        Serial.print(responseBody);
         responseBody += line + "\n";
-        Serial.println("headersEndend2: ");
-        Serial.print(responseBody);
       }
     }
   }
-  Serial.print(responseBody);
-  return extractValue(responseBody);
+  return responseBody;
 }
 
 String extractValue(String response) {
@@ -709,8 +723,16 @@ String extractValue(String response) {
   return valueStr;
 }
 
+String extractJWT(String response) {
+  int tokenStartIndex = response.indexOf("eyJ");                // Find the start of the token
+  int tokenEndIndex = response.indexOf("\"", tokenStartIndex);  // Find the end of the token
+  if (tokenStartIndex != -1 && tokenEndIndex != -1) {
+    return response.substring(tokenStartIndex, tokenEndIndex);
+  } else {
+    return "";
+  }
+}
+
 void soundEffect() {
   carrier.Buzzer.beep(294, 125);  //D4
-  carrier.Buzzer.beep(587, 250);  //D5
-  carrier.Buzzer.beep(440, 250);  //A4
 }
