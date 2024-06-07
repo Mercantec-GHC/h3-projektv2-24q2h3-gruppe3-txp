@@ -225,7 +225,7 @@ app.post("/personalHighscore", requireAuth, async (req, res) => {
 
     let highscore = 0;
     if (highscoreSearch.length == 0) {
-        res.status(404).json("No highscore found");
+        res.status(200).json(highscore);
     } else {
         highscore = highscoreSearch[0].score;
 
@@ -285,7 +285,7 @@ app.post("/getUserStats", requireAuth, async (req, res) => {
                 });
                 let highscore = 0;
                 if (highscoreSearch.length == 0) {
-                    res.status(404).json("No highscore found");
+                    res.status(200).json({ username: user?.username, score: 0 });
                 } else {
                     highscore = highscoreSearch[0].score;
 
