@@ -250,11 +250,13 @@ app.get("/getDevices", async (req, res) => {
 
 // API ENDPOINT - /getDevice/:ArduinoDevice
 app.get("/getDevice/:arduinoDevice", async (req, res) => {
+    console.log(req);
     if (!req.params.arduinoDevice) {
         return res.status(406).json("Please send device name!");
     }
 
     const device = await prisma.sessions.findFirst({ where: { ArduinoDevice: req.params.arduinoDevice } });
+    console.log(device);
     res.status(200).json(device);
 });
 
