@@ -229,5 +229,5 @@ Requires Cookie
 **Response**
 
 ```ts
-Messages: "List device info";
+Messages: "List user stats";
 ```
