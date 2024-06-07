@@ -63,7 +63,8 @@ Messages: "Success" | "Please fill out all required fields." | "Username already
 
 ```ts
 username: string,
-password: string
+password: string,
+arduinoDevice: string
 ```
 
 **Response**
@@ -173,4 +174,46 @@ gameId: int
 
 ```ts
 Messages: "List highscore found by gameId and userId";
+```
+
+### /sendArduinoName
+
+**Request**
+
+```ts
+arduinoDevice: string;
+```
+
+**Response**
+
+```ts
+Messages: "List arduino device info";
+```
+
+### /getDevices
+
+**Request**
+
+```ts
+"No request / parameters needed";
+```
+
+**Response**
+
+```ts
+Messages: "List arduino devices";
+```
+
+### /getDevice/:arduinoDevice
+
+**Request**
+
+```ts
+arduinoDevice: string;
+```
+
+**Response**
+
+```ts
+Messages: "List device info";
 ```
