@@ -1,9 +1,10 @@
+#![windows_subsystem = "windows"]
+
 use dotenv;
 use reqwest::{Client, Error, Response};
 use serde::{Deserialize, Serialize};
 use slint::{ModelRc, SharedString, VecModel};
-use std::{collections::HashMap, env, rc::Rc};
-
+use std::{collections::HashMap, env, rc::Rc, time::SystemTime};
 slint::include_modules!();
 
 #[derive(Serialize, Deserialize)]
@@ -31,6 +32,15 @@ struct Score {
     #[serde(rename = "userRelation")]
     user_relation: Username,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Device {
+    id: i32,
+    #[serde(rename = "ArduinoDevice")]
+    arduino_device: String,
+    #[serde(rename = "Account")]
+    account: Option<String>,
+}
 #[derive(Serialize, Deserialize, Debug)]
 struct Username {
     username: String,
@@ -39,61 +49,94 @@ struct Username {
 const API_CON: &str = "https://h3-projektv2-24q2h3-gruppe3-txp.onrender.com/";
 fn main() -> Result<(), slint::PlatformError> {
     let ui = AppWindow::new().unwrap();
-    let ui_weak = ui.as_weak();
+    let ui_weak1 = ui.as_weak();
+    let ui_weak2 = ui.as_weak();
+    let ui_weak3 = ui.as_weak();
     let _ = dotenv::dotenv().is_ok();
+    ui.on_getdevices({
+        move || {
+            get_time();
+
+            // let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
+            // let handle = ui_weak2.unwrap();
+            // handle
+            // .global::<logic>()
+            // .set_error("Awaiting API".into());
+            // let _ = slint::spawn_local(async move {
+            //     let res = tokio_runtime
+            //         .spawn(async move {
+            //             let client: Client = Client::new();
+            //             let res: Vec<Device> = client
+            //                 .get("https://h3-projektv2-24q2h3-gruppe3-txp.onrender.com/getDevices")
+            //                 .send()
+            //                 .await
+            //                 .expect("error. it failed")
+            //                 .json::<Vec<Device>>()
+            //                 .await
+            //                 .expect("test");
+            //             return res;
+            //         })
+            //         .await
+            //         .expect("whatever");
+            //     let result: Rc<VecModel<SharedString>> = Rc::new(vec_device(res));
+            //     handle
+            //         .global::<logic>()
+            //         .set_Devices(ModelRc::<SharedString>::new(result.clone()));
+            //     handle
+            //     .global::<logic>()
+            //     .set_error("".into());
+            // });
+        }
+    });
     ui.on_login({
-        move |data: Credentials| {
-            println!("entered login handler");
+        move |creds: Credentials, device: SharedString| {
+            let handle = ui_weak3.unwrap();
+
             let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
+            let _ = slint::spawn_local(async move {
+                let res = tokio_runtime
+                    .spawn(async move {
+                        let con_string: &str = &format!("{}{}", API_CON, "login");
+                        let mut map: HashMap<&str, String> = HashMap::new();
+                        map.insert("username", creds.username.to_string());
+                        map.insert("password", creds.password.to_string());
+                        map.insert("arduinoDevice", device.to_string());
+                        let client: Client = Client::new();
 
-            let (sender, reciever) = std::sync::mpsc::channel::<SharedString>();
-
-            let thread = std::thread::spawn(move || {
-                println!("entered slint spawned");
-                let res = tokio_runtime.block_on(async move {
-                    println!("entered tokio spawned");
-                    let con_string: &str = &format!("{}{}", API_CON, "login");
-                    let mut map: HashMap<&str, String> = HashMap::new();
-                    map.insert("username", data.username.to_string());
-                    map.insert("password", data.password.to_string());
-                    let client: Client = Client::new();
-
-                    let response: Result<Response, Error> =
-                        client.post(con_string).json(&map).send().await;
-                    let data: Response = match response {
-                        Ok(data) => data,
-                        Err(error) => panic!("panicked {}", error),
-                    };
-                    let binding = data;
-                    let mut test = binding.cookies();
-                    let fest = test.next().unwrap();
-                    let frick: SharedString = fest.value().into();
-                    frick
-                });
-
-                sender.send(res).unwrap();
-                println!("send message")
+                        let response: Result<Response, Error> =
+                            client.post(con_string).json(&map).send().await;
+                        return response;
+                    })
+                    .await;
+                let temp_binding = match res {
+                    Ok(data) => data,
+                    Err(error) => panic!("{error}"),
+                };
+                let binding = match temp_binding {
+                    Ok(data) => data,
+                    Err(error) => panic!("{error}"),
+                };
+                let test = binding.cookies().next();
+                match test {
+                    Some(test) => {
+                        let cookie: SharedString = test.value().into();
+                        handle.clone_strong().global::<logic>().set_token(cookie);
+                        handle.global::<logic>().set_logged_in(true);
+                    }
+                    None => handle
+                        .clone_strong()
+                        .global::<logic>()
+                        .set_error("Invalid login".into()),
+                }
             });
-
-            print!("waiting for message");
-            let res = reciever.recv().unwrap();
-            println!("{res:#?}");
-
-            // let ui_clone: slint::Weak<AppWindow> = ui.clone();
-            // ui_clone.global::<logic>().set_loading(true);
-            thread.join().unwrap();
-            return res;
         }
     });
     ui.on_createacc({
         move |data: Credentials| {
-            //need to figure out how to use said functionality
-            //creates a new user in the database
             let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
             slint::spawn_local(async move {
-                let res: Result<std::string::String, Error> = tokio_runtime
+                let _res: Result<std::string::String, Error> = tokio_runtime
                     .spawn(async move {
-                        // This code is running on the Tokio runtime's thread, you can await futures that depends on Tokio here.
                         let mut map: HashMap<&str, String> = HashMap::new();
                         map.insert("username", data.username.to_string());
                         map.insert("password", data.password.to_string());
@@ -106,16 +149,10 @@ fn main() -> Result<(), slint::PlatformError> {
                             .expect("failed to get response")
                             .text()
                             .await;
-                        print!("{response:#?}");
-
                         return response;
                     })
                     .await
                     .unwrap();
-                print!("{res:#?}");
-                if res.is_ok() {}
-
-                //let result = from_str::<server_response>(result);
             })
             .unwrap();
         }
@@ -123,9 +160,8 @@ fn main() -> Result<(), slint::PlatformError> {
     ui.on_gethighscores({
         move |data: i32, token: SharedString| {
             let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
-            let handle =ui_weak.unwrap();
+            let handle = ui_weak1.unwrap();
             let _ = slint::spawn_local(async move {
-
                 // let handle = AppWindow::new().unwrap();
                 let res: Vec<Score> = tokio_runtime
                     .spawn(async move {
@@ -144,7 +180,6 @@ fn main() -> Result<(), slint::PlatformError> {
                             .json::<Vec<Score>>()
                             .await
                             .expect("failed at json conversion");
-                        print!("{response:#?}");
                         return response;
                     })
                     .await
@@ -153,14 +188,8 @@ fn main() -> Result<(), slint::PlatformError> {
                 handle
                     .global::<logic>()
                     .set_value(ModelRc::<User>::new(result.clone()));
-                println!("{:#?}", ModelRc::<User>::new(result.clone()));
-                println!("{:#?}", handle.global::<logic>().get_value());
                 return result;
-            })
-            .unwrap();
-
-            let test2: ModelRc<User> = Default::default();
-            return test2;
+            });
         }
     });
     ui.run()
@@ -178,4 +207,19 @@ fn vec_test(api_output: Vec<Score>) -> VecModel<User> {
         output.push(temp_val);
     }
     return output;
+}
+fn vec_device(api_output: Vec<Device>) -> VecModel<SharedString> {
+    let output: VecModel<SharedString> = Vec::new().into();
+
+    for score in api_output {
+        let temp_val: SharedString = score.arduino_device.into();
+
+        output.push(temp_val);
+    }
+    return output;
+}
+
+fn get_time() {
+let now = SystemTime::now();
+print!("{now:#?}");
 }

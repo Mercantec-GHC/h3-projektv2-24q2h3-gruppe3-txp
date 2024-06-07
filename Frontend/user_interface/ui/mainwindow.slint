@@ -10,6 +10,9 @@ export global logic {
     in-out property <string> token <=> properties.token;
     in-out property <bool> loading <=> properties.loading;
     in-out property <[User]> value <=> properties.user;
+    in property <[string]> Devices <=> properties.Devices;
+    in-out property <bool> logged-in <=> properties.logged-in;
+    in-out property <string> error <=> properties.error;
 }
 
 export component AppWindow inherits Window {
@@ -19,18 +22,20 @@ export component AppWindow inherits Window {
     callback createacc <=> callbacks.request-create-user;
     callback gethighscoresperuser <=> callbacks.get-user-scores;
     pure callback gethighscores <=> callbacks.get-scores;
+    pure callback getdevices <=> callbacks.get-devices;
+
     //possibly make it states based rather than if statements
    main := HorizontalLayout {
         alignment: stretch;
         width: properties.sidebaractive ? 80% : 100%;
         x: sidebar.width;
-        if pageination.activepage == 0: Dashboard {
+        if pageination.activepage == 0 && logic.logged-in: Dashboard {
             visible: true;
         }
-        if pageination.activepage == 1: SignUpPage {
+        if pageination.activepage == 1 && logic.logged-in == false: SignUpPage {
             visible: true;
         }
-        if pageination.activepage == 2: LoginPage {
+        if logic.logged-in == false && pageination.activepage == 2:  LoginPage {
             visible: true;
         }
         if pageination.activepage == 3 && properties.logged-in == true: test:=leaderboard {
@@ -41,7 +46,6 @@ export component AppWindow inherits Window {
         }
     }
 
-    //TODO: Make the SVG scale depedending on the scale of the window
     sidebar := Rectangle {
         visible: properties.sidebartest ? true : false;
         x: 0px;
@@ -67,21 +71,7 @@ export component AppWindow inherits Window {
         }
 
         // Currently login
-        Rectangle {
-            visible: properties.sidebaractive ? true : false;
-            Text {
-                text: "clickme";
-                TouchArea {
-                    width: 150%;
-                    height: 150%;
-                    clicked => {
-                        pageination.activepage = 2;
-                        properties.sidebartest = false;
-                        properties.sidebaractive = false;
-                    }
-                }
-            }
-        }
+        
 
         //leaderboards or highscore
         Rectangle {

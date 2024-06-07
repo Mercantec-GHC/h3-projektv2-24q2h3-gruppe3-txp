@@ -2,8 +2,8 @@ import {palette, pageination, callbacks, properties, Credentials} from "./common
 import { Page } from "common.slint";
 
 export component Profile {
-    width: 100%;
-    height: 100%;
+    width: 1000px;
+    height: 800px;
     userlabel := Rectangle {
         width: 95%;
         height: 10%;
@@ -13,9 +13,10 @@ export component Profile {
         border-color: blue;
         border-width: 2px;
         Text {
-            x: 0px;
-            y: 0px;
-            text: @tr("{}", properties.currentuser.username);
+            x: parent.width/3;
+            y: parent.height/3;
+            font-size: 20px;
+            text: @tr("{}test", properties.currentuser.username);
         }
 
         //need to get current date
@@ -40,7 +41,8 @@ export component Profile {
         y: parent.height / 7;
         for game in properties.games: Rectangle {
             Text {
-                //   text: @tr("{}", game.score[1]);
+                //   text: @tr("{}", game.score);
+                text: @tr("test" );
             }
         }
     }
@@ -48,13 +50,18 @@ export component Profile {
     gamescores := Rectangle {
         background: red;
         height: 80%;
-        width: 27.5%;
-        x: parent.width * 0.7;
+        width: parent.width/3;
+        x: parent.width * 0.6;
         y: parent.height / 7;
-        for game in properties.games: Rectangle {
-            
-            Text {
-                text: @tr("{}", game);
+        VerticalLayout {
+            for game in properties.games: Rectangle {
+                test :=Text {
+                    text: @tr("{}:", game);
+                }
+                Text {
+                    y: test.y + 15px;
+                    text: @tr("{}", "test");
+                }
             }
         }
     }

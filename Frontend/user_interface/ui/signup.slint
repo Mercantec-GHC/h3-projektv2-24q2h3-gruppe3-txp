@@ -9,7 +9,6 @@ export struct User {
 
 export component SignUpPage inherits Page {
     in-out property <bool> usercreated;
-    BackToDashBoard { }
     VerticalBox {
         width: root.width;
         height: root.height/3;
@@ -20,13 +19,6 @@ export component SignUpPage inherits Page {
         }
 
         passwordfield0 := LineEdit {
-            height: parent.height / 3;
-            placeholder-text: "password";
-            input-type: password;
-            text: "";
-        }
-
-        passwordfield1 := LineEdit {
             height: parent.height / 3;
             placeholder-text: "password";
             input-type: password;
@@ -44,7 +36,8 @@ export component SignUpPage inherits Page {
             clicked => {
                 properties.currentuser.username = usernamefield.text;
                 properties.currentuser.password = passwordfield0.text;
-                callbacks.request-create-user(properties.currentuser)
+                callbacks.request-create-user(properties.currentuser);
+                pageination.activepage = 2;
             }
         }
 

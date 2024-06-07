@@ -30,7 +30,7 @@ export component Page inherits Rectangle {
 }
 
 export global pageination {
-    in-out property <int> activepage: 0;
+    in-out property <int> activepage: 2;
 }
 
 export component BackToDashBoard {
@@ -69,8 +69,8 @@ export struct Credentials {
 export global properties {
     in-out property <Credentials> currentuser;
     in-out property <bool> usercreated;
-    in-out property <bool> sidebaractive: true;
-    in-out property <bool> sidebartest: true;
+    in-out property <bool> sidebaractive: false;
+    in-out property <bool> sidebartest: false;
     in-out property <[User]> user:[
         { name:"Phami", score:0 },
         { name: "Druumihra", score:9999999 },
@@ -78,6 +78,7 @@ export global properties {
         { name:"Phami", score:0 },
         { name: "Druumihra", score:9999999 }
     ];
+    in property <[string]> Devices;
     in-out property <bool> logged-in: false;
     in-out property <string> instanceId;
     in-out property <string> date: "00:00:0000";
@@ -85,11 +86,13 @@ export global properties {
     out property <[string]> games: ["Snake", "Brick Breaker", "Pong", "side-scroller"];
     in-out property <string> token;
     in-out property <bool> loading: false;
+    in-out property <string> error;
 }
 
 export global callbacks {
-    callback request-login(Credentials) -> string;
+    callback request-login(Credentials, string);
     callback request-create-user(Credentials);
     callback get-user-scores(User) -> User;
-    pure callback get-scores(int, string) -> [User];
+    pure callback get-scores(int, string);
+    pure callback get-devices();
 }

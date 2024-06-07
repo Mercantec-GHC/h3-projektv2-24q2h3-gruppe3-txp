@@ -1,11 +1,11 @@
 import {palette, Page, properties,callbacks, User} from "common.slint";
-//import "C:\Users\teisb\AppData\Local\Microsoft\Windows\Fonts/RandyGGRegular.ttf";
+import "C:\Users\teisb\AppData\Local\Microsoft\Windows\Fonts/RandyGGRegular.ttf";
 
 component LeaderboardSlot inherits Rectangle {
 in-out property <[User]> data <=> properties.user;
     VerticalLayout {
         spacing: 20px;
-        for user in root.data: Rectangle {
+        for user in data: Rectangle {
             background: @linear-gradient(45deg, blue 0%, palette.main 50%, palette.background 100%);
             height: parent.height / 10;
             width: parent.width;
@@ -35,7 +35,6 @@ in-out property <[User]> data <=> properties.user;
     }
 }
 
-//Added states should possibly be implemented on other things
 export component leaderboard {
     min-height: 400px;
     padding-left: 5px;
