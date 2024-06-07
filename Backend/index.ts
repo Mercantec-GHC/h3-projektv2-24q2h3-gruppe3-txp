@@ -217,12 +217,21 @@ app.get("/getHighscores", requireAuth, async (req, res) => {
 // API ENDPOINT - /personalHighscore
 app.post("/personalHighscore", requireAuth, async (req, res) => {
     // Searches for highscore from a user by requested gameId (1 = snake, 2 = brick breaker, 3 = pong)
-    const highscore = await prisma.score.findMany({
+    const highscoreSearch = await prisma.score.findMany({
         where: { AND: [{ gameId: req.body.gameId }, { userId: req.body.userId }] },
         distinct: ["userId"],
         orderBy: { score: "desc" },
     });
-    res.status(200).json(highscore[0].score);
+
+    let highscore = 0;
+    if (highscoreSearch.length == 0) {
+        res.status(404).json("No highscore found");
+    } else {
+        highscore = highscoreSearch[0].score;
+
+        // Sends user data
+        res.status(200).json(highscore);
+    }
 });
 
 // API ENDPOINT - /sendArduinoName
@@ -269,16 +278,21 @@ app.post("/getUserStats", requireAuth, async (req, res) => {
                 // Finds user where the id from the JWT matches with the id in the database
                 let user = await prisma.user.findUnique({ where: { id: decodedToken.id } });
 
-                const highscore = await prisma.score.findMany({
+                const highscoreSearch = await prisma.score.findMany({
                     where: { AND: [{ gameId: 1 }, { userId: user?.id }] },
                     distinct: ["userId"],
                     orderBy: { score: "desc" },
                 });
+                let highscore = 0;
+                if (highscoreSearch.length == 0) {
+                    res.status(404).json("No highscore found");
+                } else {
+                    highscore = highscoreSearch[0].score;
+                    const userInfo = [user?.username, highscore];
 
-                const userInfo = [user?.username, highscore[0].score];
-
-                // Sends user data
-                res.status(200).json(userInfo);
+                    // Sends user data
+                    res.status(200).json(userInfo);
+                }
             }
         });
     }
