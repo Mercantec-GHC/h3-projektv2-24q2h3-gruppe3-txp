@@ -1,24 +1,19 @@
+
+/*
 import { ComboBox, Button, VerticalBox, LineEdit, ProgressIndicator, HorizontalBox } from "std-widgets.slint";
 import { Page, pageination, BackToDashBoard, callbacks, properties } from "common.slint";
 
 
-export component LoginPage inherits Page {
 
-    min-height: 500px;
-    min-width: 500px;
+export component LoginPage inherits Page {
     init => {
         callbacks.get-devices()
     }
+    height: 100%;
+    width: 100%;
+ 
 
-    Text {
-        x: parent.width/2;
-        y: 10px;
-        z: 20;
-        text: properties.error;
-        color: red;
-    }
-
-    VerticalBox {
+    VerticalBox {  
         width: root.width;
         y: 40px;
         height: parent.height / 2;
@@ -56,18 +51,25 @@ export component LoginPage inherits Page {
             clicked => {
                 properties.currentuser.username = usernamefield.text;
                 properties.currentuser.password = passwordfield.text;
-                callbacks.request-login(properties.currentuser, devicebox.current-value)
+                callbacks.request-login(properties.currentuser, devicebox.current-value);
+                if properties.token == "" {
+                    pageination.activepage=0;
+                    properties.sidebaractive = true;
+                    properties.sidebartest = true;
+                }
+                
             }   
         }
 
-        
         accountbtn := Button {
             text: "Create new account";
             clicked => {
                 pageination.activepage = 1;
+                properties.error ="";
             }
         }
     }
+
 }
 
-
+*/

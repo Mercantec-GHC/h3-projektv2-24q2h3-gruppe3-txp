@@ -1,0 +1,81 @@
+import {palette, pageination, callbacks, properties, Credentials} from "./common.slint";
+import { Page } from "common.slint";
+
+export component Profile {
+    min-width: 500px;
+    min-height: 500px;
+    Rectangle {
+    background: palette.background;
+    userlabel := Rectangle {
+        width: 95%;
+        height: 10%;
+        background: palette.background-darker;
+        x: parent.width * 0.025;
+        y: 10px;
+        border-width: 2px;
+        Text {
+            x: parent.width/2;
+            y: parent.height/8;
+            font-size: parent.height/2;
+            color: palette.main;
+            
+            text: @tr("{}", properties.currentuser.username);
+        }
+        Text {
+            color: palette.main;
+            x: parent.width * 0.840;
+            y: parent.height / 8;
+            text: @tr("{}",properties.time);
+            font-size: parent.height/3;
+
+        }
+        Text {
+            x: parent.width * 0.80;
+            y: parent.height * 2 / 4;
+            color: palette.main;
+            font-size: parent.height/3;
+            text: @tr("{}", properties.date);
+        }
+    }
+
+    topscores := Rectangle {
+        background: palette.background-darker;
+        height: 40%;
+        width: 40%;
+        x: parent.width * 0.025;
+        y: parent.height / 7;
+        for game in properties.games: Rectangle {
+            Text {
+                color: palette.text;
+                font-size: parent.width/10;
+                text: @tr("{}", properties.userscore );
+            }
+        }
+    }
+
+    gamescores := Rectangle {
+        background: palette.background-darker;
+        height: 80%;
+        width: parent.width/2.7;
+        x: parent.width * 0.6;
+        y: parent.height / 8;
+        VerticalLayout {
+            y: -23px;
+            for game in properties.games: Rectangle {
+                test :=Text {
+                    font-size: parent.width/15;
+                    text: @tr("{}:", game);
+                    color: palette.main;
+                }
+                Text {
+                    color: palette.text;
+                    font-size: test.font-size/1.2;
+                    y: test.y + 40px;
+                    text: @tr("{}", "test");
+                }
+            }
+        }
+ 
+    }
+    }
+}

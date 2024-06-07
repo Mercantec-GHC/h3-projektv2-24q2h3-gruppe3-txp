@@ -1,15 +1,24 @@
 import { Button } from "std-widgets.slint";
+
 struct ButtonColors {
     base: color,
     pressed: color,
     hovered: color,
 }
+export struct User {
+    name: string,
+    score: int,
+    identifier: int,
+} 
 
 export global palette {
     in property <bool> night-mode: false;
     out property <color> text: night-mode ? #000000 : #FFFFFF;
     out property <color> main: #ff6f00;
     out property <color> background: #2e2d2d;
+    out property <color> background-darker: #252323;
+
+    out property <color> inactive: #ffffff;
     out property <color> primary-push-button-base: #ff0000;
     out property <ButtonColors> primary-push-button-colors: {
         base: root.primary-push-button-base,
@@ -24,7 +33,7 @@ export component Page inherits Rectangle {
 }
 
 export global pageination {
-    in-out property <int> activepage: 0;
+    in-out property <int> activepage: 2;
 }
 
 export component BackToDashBoard {
@@ -43,12 +52,14 @@ export component BackToDashBoard {
             height: parent.height;
             clicked => {
                 pageination.activepage = 0;
+                properties.sidebartest = true;
+                properties.sidebaractive = true;
             }
         }
     }
 }
 
-export global User {
+export global UserId {
     in-out property <string> Username;
     in-out property <int> Identifier;
 }
@@ -58,44 +69,37 @@ export struct Credentials {
     password: string,
 }
 
-export global callbacks {
-    callback request-login(Credentials);
-    callback request-create-user(Credentials);
-}
+
 
 export global properties {
     in-out property <Credentials> currentuser;
     in-out property <bool> usercreated;
-    in-out property <bool> sidebaractive: true;
+    in-out property <bool> sidebaractive: false;
+    in-out property <bool> sidebartest: false;
+    in-out property <[User]> user:[
+        { name:"Phami", score:0 },
+        { name: "Druumihra", score:9999999 },
+        { name: "Patrick", score: 10 },
+        { name:"Phami", score:0 },
+        { name: "Druumihra", score:9999999 }
+    ];
+    in property <[string]> Devices;
+    in-out property <bool> logged-in: false;
+    in-out property <string> instanceId;
+    in-out property <string> date: "00:00:0000";
+    in-out property <string> time: "00:00";
+    out property <[string]> games: ["Snake", "Brick Breaker", "Pong", "side-scroller"];
+    in-out property <string> token;
+    in-out property <bool> loading: false;
+    in-out property <string> error;
+    in-out property <int> userscore;
 }
 
-export component Sidebar {
-    sidebar := Rectangle {
-        width: properties.sidebaractive ? 20% : 0%;
-        height: 100%;
-        animate width { duration: 150ms; }
-        background: palette.background;
-        padding: 0;
-        sidebarbutton := Button {
-            x: properties.sidebaractive ? sidebar.width - 35px : sidebar.width;
-            y: 0px;
-            icon: properties.sidebaractive ? @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-left.svg") : @image-url("C:/Users/teisb/desktop/TxP/h3-projektv2-24q2h3-gruppe3-txp/Frontend/user_interface/ui/assets/arrow-right.svg");
-            clicked => {
-                properties.sidebaractive = ! properties.sidebaractive;
-            }
-        }
-
-        Rectangle {
-            Text {
-                text: "clickme";
-                TouchArea {
-                    width: 150%;
-                    height: 150%;
-                    clicked => {
-                        pageination.activepage = 2;
-                    }
-                }
-            }
-        }
-    }
+export global callbacks {
+    callback request-login(Credentials, string);
+    callback request-create-user(Credentials);
+    callback get-user-scores(User) -> User;
+    pure callback get-scores(int, string);
+    pure callback get-devices();
+    callback get-user-data(string);
 }
