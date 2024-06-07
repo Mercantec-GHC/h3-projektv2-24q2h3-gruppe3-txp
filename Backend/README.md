@@ -217,3 +217,17 @@ arduinoDevice: string;
 ```ts
 Messages: "List device info";
 ```
+
+### /getUserStats
+
+**Request**
+
+```ts
+Requires Cookie
+```
+
+**Response**
+
+```ts
+Messages: "List device info";
+```

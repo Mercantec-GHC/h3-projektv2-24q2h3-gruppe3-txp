@@ -256,5 +256,33 @@ app.get("/getDevice/:arduinoDevice", async (req, res) => {
     res.status(200).json(device?.Account);
 });
 
+app.post("/getUserStats", requireAuth, async (req, res) => {
+    // Splits our token so the encrypted JWT is accessible
+    let token = req.headers["cookie"]?.split("JWT=")[1];
+
+    // If there is a token verify with out jwtSecret to ensure it is ours
+    if (token) {
+        jwt.verify(token, jwtSecret, async (err: any, decodedToken: any) => {
+            if (err) {
+                res.status(400).json("Unauthorized.");
+            } else {
+                // Finds user where the id from the JWT matches with the id in the database
+                let user = await prisma.user.findUnique({ where: { id: decodedToken.id } });
+
+                const highscore = await prisma.score.findMany({
+                    where: { AND: [{ gameId: 1 }, { userId: user?.id }] },
+                    distinct: ["userId"],
+                    orderBy: { score: "desc" },
+                });
+
+                const userInfo = [user?.username, highscore[0].score];
+
+                // Sends user data
+                res.status(200).json(userInfo);
+            }
+        });
+    }
+});
+
 // Starts app/backend on localhost:4321
 app.listen(port, () => console.log(`REST API server ready at: http://localhost:${port}`));
