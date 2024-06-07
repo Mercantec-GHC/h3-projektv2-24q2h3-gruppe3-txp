@@ -288,10 +288,9 @@ app.post("/getUserStats", requireAuth, async (req, res) => {
                     res.status(404).json("No highscore found");
                 } else {
                     highscore = highscoreSearch[0].score;
-                    const userInfo = [user?.username, highscore];
 
                     // Sends user data
-                    res.status(200).json(userInfo);
+                    res.status(200).json({ username: user?.username, score: highscore });
                 }
             }
         });
